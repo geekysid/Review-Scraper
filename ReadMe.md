@@ -94,7 +94,7 @@ We will have 5 tables:
 - *Database*: "db_m2websolution"
 - *Username*: "m2websolution"
 - *Password*: "AVNS_QcrHGxP47NABM1AhWT"
-- *Port*: ""
+- *Port*: "25060"
 
 <!-- API Endpoints -->
 
