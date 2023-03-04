@@ -100,11 +100,12 @@ class TripAdvisor(AbstractScraper):
 
 
     # << function to generate generic payload from location_id
-    def generate_payload(self, review_offset: int=0) -> dict:
+    def generate_payload(self, limit: int=50, review_offset: int=0) -> dict:
         """function to generate generic payload from location_id
 
         Args:
             review_offset (int): number from which next set of reviews are to be scraped
+            limit (int): number reviews to get in each request
 
         Returns:
             dict: payload in dictionary format
@@ -115,7 +116,7 @@ class TripAdvisor(AbstractScraper):
                 "query": "e00c08246203980a6e31164c91047444",
                 "variables": {
                     "locationId": self.location_id,
-                    "limit": 750,
+                    "limit": limit,
                     "offset": review_offset,
                     "routesRequest": []
                 }
@@ -144,15 +145,21 @@ class TripAdvisor(AbstractScraper):
 
             try_count = 1
             while True:
-                response = requests.request("POST", proxies=proxy, url=url, headers=self.get_headers(), data=json.dumps(self.generate_payload(review_offset=review_offset)), stream=True)
-                try:
-                    ip_address = response.raw._original_response.fp.raw._sock.getpeername()[0]
-                    utils.debug(message=f"IP Used: {ip_address}", type="info", logger=self.logger)
-                except:
-                    pass
+                # Create a prepared request with the proxy settings
+                response = requests.request("POST", proxies=proxy, url=url, headers=self.get_headers(), data=json.dumps(self.generate_payload(limit=self.review_limit_per_request, review_offset=review_offset)))
 
                 if response.status_code == 200:
-                    reviews = response.json()[0]["data"]["locationReviews"][0]
+                    # with open('test.json', 'w') as w:
+                    #     json.dump(response.json(), w, indent=4)
+
+                    try:
+                        reviews = response.json()[0]["data"]["locationReviews"][0]
+                    except:
+                        self.review_limit_per_request = int(self.review_limit_per_request/2)
+                        if self.review_limit_per_request < 20:
+                            raise Exception(f"Unable to get reviews with limit {self.review_limit_per_request}")
+                        continue
+
                     if len(reviews) > 0:
                         utils.debug(message=f"Offset: {review_offset} || Reviews_count: {len(reviews)}", type="debug", logger=self.logger)
                         return reviews
@@ -166,6 +173,7 @@ class TripAdvisor(AbstractScraper):
                     utils.save_response_to_html(response.text, file)
                     utils.debug(message=f"Got {response.status_code} status code", type="error", logger=self.logger)
                     try_count += 1
+
                     if try_count > 5:
                         utils.terminate_script(job_id=self.job_id, status="ERROR", remarks=f"Got {response.status_code} status code", logger=self.logger)
                         utils.debug(message=f"Unable to pull reviews. Getting status code: {response.status_code}. Check {file} file for more details", type="exception", logger=self.logger)
@@ -249,6 +257,7 @@ class TripAdvisor(AbstractScraper):
         self.location_id = self.extract_location_id()       # get location id from url
         if self.location_id:
             review_offset = 0
+            self.review_limit_per_request = 750
             while True:
                 try:
                     reviews = self.scrape_reviews(review_offset)

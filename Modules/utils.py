@@ -73,7 +73,7 @@ def terminate_script(job_id: str, status:str, remarks: str="", logger=None):
     """
 
     db_con = DBConnector()
-    query = "UPDATE tb_jobs SET status='{}', remarks='{}' WHERE job_id='{}'".format(status, remarks, job_id)
+    query = "UPDATE tb_jobs SET status='{}', remarks='{}', execution_end_date=CURRENT_TIMESTAMP WHERE job_id='{}'".format(status, remarks.replace("'", ""), job_id)
     db_con.execute_insert_update(query, logger=logger)
 
     # TODO: update job table
