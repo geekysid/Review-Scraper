@@ -1,0 +1,28 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+
+
+
+
+
+
+
+
+
+        {
+            "name": "Python: Current File",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": [
+                        "--url", "https://www.tripadvisor.com/VacationRentalReview-g32463-d18798751-Dramatic_Romantic_Oceanfront_Home_with_180_Degree_Ocean_View-Gualala_Mendocino_County_.html",
+                        "--start-date", "2000-01-01",
+                        "--end-date", "2023-03-03",
+                        "--job-id", "1000"
+                    ]
+        }
+    ]
+}
