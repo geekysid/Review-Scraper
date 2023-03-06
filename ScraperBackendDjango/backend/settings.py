@@ -14,13 +14,20 @@ from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+from dotenv import load_dotenv
+import os
+
+
+load_dotenv(dotenv_path=os.path.join(BASE_DIR,'.env') )
+
 
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-frxnxwozi9adpa4=*sscc(-@4f1y@@hz$1q9@$p&qbxy&94%dp'
+SECRET_KEY = os.getenv('SECRET_KEY')
+
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -92,14 +99,16 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 
 
 
+
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'db_m2websolution',
-        'USER': 'm2websolution',
-        'PASSWORD': 'AVNS_QcrvHGxP47NABM1AhWT',
-        'HOST':'personal-db-do-user-9139632-0.b.db.ondigitalocean.com',
-        'PORT':'25060',
+        'NAME': os.getenv('DB_DATABASE'),
+        'USER': os.getenv('DB_USERNAME'),
+        'PASSWORD': os.getenv('DB_PASSWORD'),
+        'HOST':os.getenv('DB_HOST'),
+        'PORT':os.getenv('DB_PORT'),
     }
 }
 
