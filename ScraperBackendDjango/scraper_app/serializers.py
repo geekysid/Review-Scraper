@@ -49,7 +49,7 @@ class AddJobTbSerializer(serializers.ModelSerializer):
         reviews_from_date = attrs.get('reviews_from_date')
         reviews_to_date   = attrs.get('reviews_to_date')
         url               = attrs.get('url')
-        domain            = urlparse(url).netloc
+        domain            = urlparse(url).netloc.replace("www.",'')
 
         if reviews_from_date > reviews_to_date :
             raise serializers.ValidationError({"Url": f"'reviews_from_date' can not greater than 'reviews_to_date' "})
