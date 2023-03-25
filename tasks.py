@@ -17,9 +17,6 @@ app.conf.update(
 )
 
 
-TEST = 0
-
-
 # >> FUNCTION TO RUN THE SCRAPER FOR A GIVEN JOB_ID
 @app.task()
 def run_scraper(job_id):
@@ -44,7 +41,10 @@ def add_job_to_queue():
 
 
 if __name__ == "__main__":
-    add_job_to_queue()
+    # looking for new tasks every 60 seconds
+    while True:
+        add_job_to_queue()
+        time.sleep(60)
 
 
 
