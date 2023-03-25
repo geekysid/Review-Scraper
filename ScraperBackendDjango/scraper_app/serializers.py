@@ -19,12 +19,12 @@ class ViewReviewTbSerializer(serializers.ModelSerializer):
 
 class AddJobTbSerializer(serializers.ModelSerializer):
 
-    #####################
-    current_datetime = datetime.now()  # get current date and time
-    current_date = current_datetime.date()  # extract the date
+    ##################### Date Processing  
+    current_datetime  = datetime.now()           # get current date and time
+    current_date      = current_datetime.date()  # extract the date
     current_date_time = datetime.combine( current_date, datetime.min.time())  # set the time to 0
-    old_date = dt.date(1995, 1, 1)
-    old_date_time = datetime.combine(old_date, datetime.min.time())  # set the time to 0
+    old_date          = dt.date(1995, 1, 1)
+    old_date_time     = datetime.combine(old_date, datetime.min.time())       # set the time to 0
     ######################
 
     job_id = serializers.IntegerField(required=False, read_only=True)
@@ -36,7 +36,7 @@ class AddJobTbSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = TbJobs
-        fields = ['job_id', 'url','status', 'source','reviews_from_date', 'reviews_to_date', 'remarks']
+        fields = ['job_id', 'url','status', 'reviews_from_date', 'reviews_to_date', 'remarks']
 
         validators = [serializers.UniqueTogetherValidator(
                 queryset=TbJobs.objects.all(),
@@ -49,16 +49,16 @@ class AddJobTbSerializer(serializers.ModelSerializer):
         reviews_from_date = attrs.get('reviews_from_date')
         reviews_to_date   = attrs.get('reviews_to_date')
         url               = attrs.get('url')
+        domain            = urlparse(url).netloc
 
         if reviews_from_date > reviews_to_date :
             raise serializers.ValidationError({"Url": f"'reviews_from_date' can not greater than 'reviews_to_date' "})
 
-        domain = urlparse(url).netloc
-        # print(f"{domain=}") # --> www.example.test
-        if not TbSource.objects.filter(source_name= domain).exists():
+        source_obj = TbSource.objects.filter(source_name= domain)
+        if not source_obj.exists():
             raise serializers.ValidationError({"Url": f"Domain '{domain}' Not Valid For Any Source"})
 
-
+        attrs['source'] = source_obj[0]
         attrs['status'] = 'ADDED'
         return attrs
 
@@ -70,8 +70,6 @@ class AddJobTbSerializer(serializers.ModelSerializer):
 
 
 view_serializer_dict = {"tripadvisor.com": "trip_reviewtb",'trustpilot.com':'trustpilot_reviewtb'}
-
-
 class ViewJobReviewTbSerializer(serializers.ModelSerializer):
     reviews = ViewReviewTbSerializer(many=True, source='trip_reviewtb')
     job_id = serializers.IntegerField(required=False, read_only=True)
