@@ -44,31 +44,6 @@ ENGINE=InnoDB
 DEFAULT CHARSET=utf8mb4
 COLLATE=utf8mb4_0900_ai_ci;
 
--- review table
-CREATE TABLE m2websolution_db.tb_tripadvisor_reviews (
-	id int auto_increment NOT NULL,
-	job_id int NOT NULL,
-	published_date varchar(50) NULL,
-	rating DOUBLE NULL,
-	`text` text NULL,
-	title varchar(100) NULL,
-	username varchar(100) NULL,
-	user_info varchar(100) NULL,
-	publish_platform varchar(100) NULL,
-	provider_name varchar(100) NULL,
-	trip_info json NULL,
-	social_statistics json NULL,
-	owner_response json NULL,
-	hash varchar(500) NOT NULL,
-	scraped_data timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL,
-	CONSTRAINT tb_reviews_PK PRIMARY KEY (id),
-	CONSTRAINT tb_reviews_UN UNIQUE KEY (hash),
-	CONSTRAINT tb_reviews_FK FOREIGN KEY (job_id) REFERENCES m2websolution_db.tb_jobs(job_id) ON DELETE RESTRICT ON UPDATE RESTRICT
-)
-ENGINE=InnoDB
-DEFAULT CHARSET=utf8mb4
-COLLATE=utf8mb4_0900_ai_ci;
-
 -- logs table
 CREATE TABLE m2websolution_db.tb_logs (
 	id int auto_increment NOT NULL,
@@ -85,3 +60,75 @@ ENGINE=InnoDB
 DEFAULT CHARSET=utf8mb4
 COLLATE=utf8mb4_0900_ai_ci;
 
+
+-- tripdvisor review table
+CREATE TABLE m2websolution_db.tb_tripadvisor_reviews (
+	id int auto_increment NOT NULL,
+	job_id int NOT NULL,
+	published_date varchar(50) NULL,
+	rating DOUBLE NULL,
+	`text` text NULL,
+	title varchar(100) NULL,
+	username varchar(100) NULL,
+	user_info varchar(100) NULL,
+	publish_platform varchar(100) NULL,
+	provider_name varchar(100) NULL,
+	trip_info json NULL,
+	social_statistics json NULL,
+	owner_response json NULL,
+	hash varchar(500) NOT NULL,
+	scraped_date timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	CONSTRAINT tb_reviews_PK PRIMARY KEY (id),
+	CONSTRAINT tb_reviews_UN UNIQUE KEY (hash),
+	CONSTRAINT tb_reviews_FK FOREIGN KEY (job_id) REFERENCES m2websolution_db.tb_jobs(job_id) ON DELETE RESTRICT ON UPDATE RESTRICT
+)
+ENGINE=InnoDB
+DEFAULT CHARSET=utf8mb4
+COLLATE=utf8mb4_0900_ai_ci;
+
+-- trustpilot review table
+CREATE TABLE m2websolution_db.tb_trustpilot_reviews (
+  id int NOT NULL AUTO_INCREMENT,
+  job_id int NOT NULL,
+  trustpilot_id varchar(50) DEFAULT NULL,
+  published_date varchar(50) DEFAULT NULL,
+  rating double DEFAULT NULL,
+  text text,
+  title text DEFAULT NULL,
+  likes varchar(100) DEFAULT NULL,
+  consumer_name varchar(100) DEFAULT NULL,
+  user_info json DEFAULT NULL,
+  reply json DEFAULT NULL,
+  hash varchar(500) NOT NULL,
+  scraped_date timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  UNIQUE KEY tb_trustpilot_reviews_UN (hash),
+  KEY tb_trustpilot_reviews_FK (job_id),
+  CONSTRAINT tb_trustpilot_FK FOREIGN KEY (job_id) REFERENCES tb_jobs (job_id) ON DELETE RESTRICT ON UPDATE RESTRICT
+);
+
+-- booking review table
+CREATE TABLE m2websolution_db.tb_booking_reviews (
+  id int NOT NULL AUTO_INCREMENT,
+  job_id int NOT NULL,
+  published_date varchar(50) DEFAULT NULL,
+  reviewer_name varchar(50) DEFAULT NULL,
+  reviewer_country varchar(50) DEFAULT NULL,
+  room_type varchar(50) DEFAULT NULL,
+  stay_duration varchar(50) DEFAULT NULL,
+  stay_date varchar(50) DEFAULT NULL,
+  reviewed_date varchar(50) DEFAULT NULL,
+  title text DEFAULT NULL,
+  like_comment text,
+  dislike_comment text,
+  hotel_response text,
+  rating double DEFAULT NULL,
+  likes varchar(100) DEFAULT NULL,
+  user_info json DEFAULT NULL,
+  hash varchar(500) NOT NULL,
+  scraped_date timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  UNIQUE KEY tb_booking_reviews_UN (hash),
+  KEY tb_booking_reviews_FK (job_id),
+  CONSTRAINT tb_booking_FK FOREIGN KEY (job_id) REFERENCES tb_jobs (job_id) ON DELETE RESTRICT ON UPDATE RESTRICT
+);

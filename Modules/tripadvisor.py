@@ -154,10 +154,12 @@ class TripAdvisor(AbstractScraper):
 
                     try:
                         reviews = response.json()[0]["data"]["locationReviews"][0]
-                    except:
+                    except Exception as e:
                         self.review_limit_per_request = int(self.review_limit_per_request/2)
                         if self.review_limit_per_request < 20:
-                            raise Exception(f"Unable to get reviews with limit {self.review_limit_per_request}")
+                            file = f"{self.domain.split('.')[0]}__{self.job_id}__offset-{review_offset}"
+                            utils.save_response_to_html(response.text, file)
+                            raise Exception(f"Unable to get reviews with limit {self.review_limit_per_request} || {e}")
                         continue
 
                     if len(reviews) > 0:
@@ -192,15 +194,15 @@ class TripAdvisor(AbstractScraper):
             reviews (list): list of raw reviews that needs to be processed
 
         Returns:
-            list: list of proccessed reviews
+            list: list of processed reviews
         """
         processed_reviews = []
-        published_date_below_below_range = False
+        published_date_below_range = False
         for review in reviews:
             try:
                 published_date = review['publishedDate']
                 review_date_valid = utils.check_date_in_range( self.from_date, self.to_date, published_date )
-                published_date_below_below_range = utils.check_date_below_range( self.from_date, published_date )
+                published_date_below_range = utils.check_date_below_range( self.from_date, published_date )
                 if review_date_valid:
                     review_data = {'job_id': self.job_id}
                     review_data["tripadvisor_id"] = ("id" in review and review["id"]) or ""
@@ -223,12 +225,12 @@ class TripAdvisor(AbstractScraper):
                     review_data['hash'] = utils.hash256(json.dumps(review_data))
                     processed_reviews.append(review_data)
 
-                if published_date_below_below_range:
+                if published_date_below_range:
                     break
             except Exception as e:
                 utils.debug(message=f"Exception while processing review (process_reviews)\n{review}\n{e}", type="exception", logger=self.logger)
 
-        return processed_reviews, published_date_below_below_range
+        return processed_reviews, published_date_below_range
 
 
     # << function that lets reviews to be saved in database
@@ -244,7 +246,7 @@ class TripAdvisor(AbstractScraper):
 
         bulk_insert_query = """
             INSERT IGNORE INTO m2websolution_db.tb_tripadvisor_reviews
-            (job_id, tripadvisor_id, published_date, rating, `text`, title, username, user_info, publish_platform, provider_name, trip_info, social_statistics, owner_response, hash, scraped_data)
+            (job_id, tripadvisor_id, published_date, rating, `text`, title, username, user_info, publish_platform, provider_name, trip_info, social_statistics, owner_response, hash, scraped_date)
             VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP);
         """
         params = [ tuple(review.values()) for review in reviews ]
@@ -262,16 +264,16 @@ class TripAdvisor(AbstractScraper):
                 try:
                     reviews = self.scrape_reviews(review_offset)
                     if reviews:
-                        processed_reviews, published_date_below_below_range = self.process_reviews(reviews)     # process Reviews
+                        processed_reviews, published_date_below_range = self.process_reviews(reviews)     # process Reviews
 
-                        # if proccessed reviews is not emplt list
+                        # if processed reviews is not empty list
                         if processed_reviews:
                             self.add_reviews_to_db(processed_reviews) # Save reviews to DB
 
                         # if review date falls below date range then consider script as complete
-                        if published_date_below_below_range:
-                            utils.terminate_script(job_id=self.job_id, status="COMPELET", remarks=f"Scraped all reviews for date greate than {self.from_date}", logger=self.logger)
-                            utils.debug(message=f"Scraped all reviews for date greate than {self.from_date}", type="debug", logger=self.logger)
+                        if published_date_below_range:
+                            utils.terminate_script(job_id=self.job_id, status="COMPLETE", remarks=f"Scraped all reviews for date greater than {self.from_date}", logger=self.logger)
+                            utils.debug(message=f"Scraped all reviews for date great than {self.from_date}", type="debug", logger=self.logger)
                             break
 
                         review_offset += len(reviews)

@@ -137,3 +137,7 @@ Logs
 *.jpg
 *.drawio
 *.csv
+
+.env
+assets
+static

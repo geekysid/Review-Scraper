@@ -1,14 +1,8 @@
 import abc
 
 
-# Note: Absract Class that will be inherited by by all scrapers
+# Note: Abstract Class that will be inherited by by all scrapers
 class AbstractScraper(metaclass=abc.ABCMeta):
-
-    # << generating location id from the url
-    @abc.abstractmethod
-    def extract_location_id(self):
-        pass
-
 
     # << function tp make API call and scrape reviews
     @abc.abstractmethod
@@ -31,9 +25,3 @@ class AbstractScraper(metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def main(self):
         pass
-
-
-    @abc.abstractmethod
-    def extract_location_id(self):
-        pass
-

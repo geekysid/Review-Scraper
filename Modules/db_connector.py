@@ -39,7 +39,11 @@ def intro():
 # Note: class that will be used to interact with the database
 class DBConnector():
     def __init__(self):
-        load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), '.env')) # loading environment variables stored in .env file
+        env_path=os.path.join(os.path.dirname(__file__), '.env')
+        if not os.path.exists(env_path):
+            env_path=os.path.join(os.path.dirname(__file__), '..', '.env')
+
+        load_dotenv(env_path) # loading environment variables stored in .env file
         self.hostname = os.getenv('DB_HOST')
         self.database = os.getenv('DB_DATABASE')
         self.username = os.getenv('DB_USERNAME')
@@ -63,6 +67,7 @@ class DBConnector():
             cursor = connection.cursor()
             return connection, cursor
         except Exception as e:
+            print(f"{e}")
             logger and utils.debug(message=f"Exception while connect to DB (create_db_connection) || {e}", type="exception", logger=logger)
             return None, None
 

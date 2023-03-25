@@ -1,6 +1,6 @@
 #!/usr/local/bin/python3
 
-# ## utiities functions to avoid code duplication
+# ## utilities functions to avoid code duplication
 
 # ****** # # # # # # # # # # # # # # # # # # # # # # # ****** #
 # ******                                               ****** #
@@ -28,7 +28,7 @@ def intro():
     print()
     print('  # # # # # # # # # # # # #  # # # # # # # #')
     print('  #                                        #')
-    print('  #     REVIEW SCRAPER UILITY FUNCTIONS    #')
+    print('  #    REVIEW SCRAPER UTILITY FUNCTIONS    #')
     print('  #           By: SIDDHANT SHAH            #')
     print('  #             Dt: 04-03-2023             #')
     print('  #      siddhant.shah.1986@gmail.com      #')
@@ -116,9 +116,9 @@ def date_from_str(string: datetime, date_format: str="%Y-%m-%d") -> datetime:
         return ""
 
 
-# << function to chekc if review_date falls between desired date range
+# << function to check if review_date falls between desired date range
 def check_date_in_range(from_date: str, to_date: str, review_date: str, date_format: str="%Y-%m-%d"):
-    """function to chekc if review_date falls between desired date range
+    """function to check if review_date falls between desired date range
 
     Args:
         from_date (str): lower limit of date range
@@ -138,7 +138,7 @@ def check_date_in_range(from_date: str, to_date: str, review_date: str, date_for
 
 # << function to check if review_date falls below end_date
 def check_date_below_range(from_date: str, review_date: str, date_format: str="%Y-%m-%d"):
-    """function to chekc if review_date falls between desired date range
+    """function to check if review_date falls between desired date range
 
     Args:
         from_date (str): lower limit of date range
@@ -178,7 +178,7 @@ def extract_domain(url: str) -> str:
         url (str): url
 
     Returns:
-        str: doamin
+        str: domain
     """
 
     parsed_url = urlparse(url)
@@ -189,13 +189,13 @@ def extract_domain(url: str) -> str:
 
 # << function to get source from DB from url
 def get_source(url: str) -> str:
-    """function that fetches matching source from DB depening on domain in url
+    """function that fetches matching source from DB depending on domain in url
 
     Args:
         url (str): url from which reviews are to be scraped
 
     Returns:
-        str: sourve NAME
+        str: source NAME
     """
 
     domain = extract_domain(url)
@@ -206,7 +206,7 @@ def get_source(url: str) -> str:
 
 # << function to update job status
 def update_job_status(job_id: int, new_status:str="", remarks:str="", execution_start_date: datetime=None, execution_end_date: datetime=None, logger=None) -> bool:
-    """function that fetches matching source from DB depening on domain in url
+    """function that fetches matching source from DB depending on domain in url
 
     Args:
         job_id (int): if of the job
@@ -225,7 +225,8 @@ def update_job_status(job_id: int, new_status:str="", remarks:str="", execution_
                 (new_status and f"status='{new_status}'") or "",
                 (remarks and f"remarks='{remarks}'") or "",
                 (execution_start_date and f"execution_start_date='{execution_start_date}'") or "",
-                (execution_end_date and f"execution_end_date='{execution_end_date}'") or ""
+                (execution_end_date and f"execution_end_date='{execution_end_date}'") or "",
+                "last_updated=CURRENT_TIMESTAMP"
             ] if x ])
 
         update_query = " UPDATE tb_jobs SET {} WHERE job_id={}; ".format(update_params, job_id)
@@ -233,7 +234,27 @@ def update_job_status(job_id: int, new_status:str="", remarks:str="", execution_
         logger and debug(message=f"Job successfully Updated || Query: {update_query} ", type="info", logger=logger)
         return True
     except Exception as e:
-        logger and debug(message=f"Unable to udpate job status (update_job_status) || Query: {update_query} || {e} ", type="exception", logger=logger)
+        logger and debug(message=f"Unable to update job status (update_job_status) || Query: {update_query} || {e} ", type="exception", logger=logger)
+
+
+# << function to get all jobs that has status of ADDED
+def get_new_jobs(max_count: str=5, logger=None) -> list:
+    """function to get all jobs that has status of ADDED
+
+    Args:
+        max_count (int): number of records to be returned
+    
+    Return:
+        list => list of job_ids
+    """
+
+    try:
+        query = f"SELECT job_id FROM tb_jobs WHERE status='ADDED' ORDER BY job_id LIMIT {max_count}"
+        result = DBConnector().execute_fetch(query, fetch_all=True)
+        return [x[0] for x in result]
+    except Exception as e:
+        print(f"Exception: {e}")
+        return []
 
 
 # << function to make script pause for a random seconds
@@ -248,9 +269,9 @@ def random_sleep(lower_limit:int=3, upper_limit: int=7):
     time.sleep(random.randint(lower_limit, upper_limit))
 
 
-# << funtion to get proxies and its authentication details from the csv and generate list of proxies
+# << function to get proxies and its authentication details from the csv and generate list of proxies
 def get_proxies_from_csv(logger=None) -> list:
-    """funtion to get proxies and its authentication details from the csv and generate list of proxies
+    """function to get proxies and its authentication details from the csv and generate list of proxies
 
     Returns:
         list: list of proxies with authentication
@@ -283,16 +304,16 @@ def get_random_proxy(logger=None) -> str :
         return proxies[randomness]
 
 
-# << function to save resposne in html file
+# << function to save response in html file
 def save_response_to_html(text: str, file: str) -> None:
     """saving response to th html file for future investigation
 
     Args:
         text (str): text from the response
-        file (str): name of the file to save the path
+        file (str): name of the file to save
     """
 
-    html_path = os.path.abspath(os.path.dirname(__file__), "HTMLS")
+    html_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), "HTMLs")
     if not os.path.exists(html_path):
         os.makedirs(html_path)
 
