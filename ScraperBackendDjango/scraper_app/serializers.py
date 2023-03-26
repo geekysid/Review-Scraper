@@ -23,7 +23,7 @@ class AddJobTbSerializer(serializers.ModelSerializer):
     current_datetime  = datetime.now()           # get current date and time
     current_date      = current_datetime.date()  # extract the date
     current_date_time = datetime.combine( current_date, datetime.min.time())  # set the time to 0
-    old_date          = dt.date(1995, 1, 1)
+    old_date          = dt.date(1995, 3, 1)
     old_date_time     = datetime.combine(old_date, datetime.min.time())       # set the time to 0
     ######################
 
@@ -38,18 +38,21 @@ class AddJobTbSerializer(serializers.ModelSerializer):
         model = TbJobs
         fields = ['job_id', 'url','status', 'reviews_from_date', 'reviews_to_date', 'remarks']
 
-        validators = [serializers.UniqueTogetherValidator(
-                queryset=TbJobs.objects.all(),
-                fields=('url', 'reviews_from_date', 'reviews_from_date',),
-                message="Already Exist "
-            )
-        ]
+        # validators = [serializers.UniqueTogetherValidator(
+        #         queryset=TbJobs.objects.all(),
+        #         fields=('url', 'reviews_from_date', 'reviews_from_date',),
+        #         message="Already Exist "
+        #     )
+        # ]
 
     def validate(self, attrs):
         reviews_from_date = attrs.get('reviews_from_date')
         reviews_to_date   = attrs.get('reviews_to_date')
         url               = attrs.get('url')
         domain            = urlparse(url).netloc.replace("www.",'')
+
+        if TbJobs.objects.filter(url= url ,reviews_from_date= reviews_from_date ,reviews_to_date = reviews_to_date  ).exists():
+            raise serializers.ValidationError({"Url": f"Already Exist"})
 
         if reviews_from_date > reviews_to_date :
             raise serializers.ValidationError({"Url": f"'reviews_from_date' can not greater than 'reviews_to_date' "})
