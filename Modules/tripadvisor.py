@@ -66,11 +66,11 @@ class TripAdvisor(AbstractScraper):
                         utils.debug(message=f"Location Id: {location_Id}", type="info", logger=self.logger)
                         return location_Id
 
-            utils.terminate_script(job_id=self.job_id, status="ERROR", remarks="Unable to extract location id from URL", logger=self.logger)
+            utils.terminate_script(job_id=self.job_id, status="ERRORED", remarks="Unable to extract location id from URL", logger=self.logger)
             utils.debug(message=f"Unable to extract location id from URL", type="error", logger=self.logger)
             return False
         except Exception as e:
-            utils.terminate_script(job_id=self.job_id, status="ERROR", remarks="Exception while getting location_id (extract_location_id)\n{e}", logger=self.logger)
+            utils.terminate_script(job_id=self.job_id, status="ERRORED", remarks="Exception while getting location_id (extract_location_id)\n{e}", logger=self.logger)
             utils.debug(message=f"Exception while getting location_id (extract_location_id)\n{e}", type="exception", logger=self.logger)
 
 
@@ -177,7 +177,7 @@ class TripAdvisor(AbstractScraper):
                     try_count += 1
 
                     if try_count > 5:
-                        utils.terminate_script(job_id=self.job_id, status="ERROR", remarks=f"Got {response.status_code} status code", logger=self.logger)
+                        utils.terminate_script(job_id=self.job_id, status="ERRORED", remarks=f"Got {response.status_code} status code", logger=self.logger)
                         utils.debug(message=f"Unable to pull reviews. Getting status code: {response.status_code}. Check {file} file for more details", type="exception", logger=self.logger)
                         break
 
@@ -281,6 +281,6 @@ class TripAdvisor(AbstractScraper):
                         continue
                 except Exception as e:
                     utils.debug(message=f"Got exception in main function.\n{e}", type="exception", logger=self.logger)
-                    utils.terminate_script(job_id=self.job_id, status="Exception", remarks=f"Got exception in main function.\n{e}", logger=self.logger)
+                    utils.terminate_script(job_id=self.job_id, status="EXCEPTION", remarks=f"Got exception in main function.\n{e}", logger=self.logger)
                 break
 

@@ -245,8 +245,8 @@ class Booking(AbstractScraper):
             response: response from the requests
         """
         try:
-            utils.debug(message=f"Scraping reviews for Offset # {offset}", type="info", logger=self.logger)
             url = url.replace("__OFFSET__", str(offset))
+            utils.debug(message=f"Scraping reviews for Offset # {offset} || {url} ", type="info", logger=self.logger)
             scraper = cloudscraper.create_scraper(
                 delay=10, 
                 browser={
@@ -265,15 +265,16 @@ class Booking(AbstractScraper):
             # response = requests.request("GET", url=url, proxies=proxy)
 
             result = scraper.get(url)
-            utils.save_response_to_html(result.text, f"{self.job_id}__test.html")
+            file = f"{self.job_id}__test.html"
+            utils.save_response_to_html(result.text, file)
             if result.status_code == 200:
                 return result.text
             else:
-                utils.debug(message=f"Got status code of {result.status_code} || URL: {url}", type="error", logger=self.logger)
-                utils.terminate_script(job_id=self.job_id, status="Error", remarks=f"Got status code of {result.status_code} || URL: {url}", logger=self.logger)
+                utils.debug(message=f"Got status code of {result.status_code} || URL: {url} || Html File: {file}", type="error", logger=self.logger)
+                utils.terminate_script(job_id=self.job_id, status="ERRORED", remarks=f"Got status code of {result.status_code} || URL: {url}", logger=self.logger)
         except Exception as e:
             utils.debug(message=f"Exception while getting response from 1st page. get_response() || {e}", type="exception", logger=self.logger)
-            utils.terminate_script(job_id=self.job_id, status="Exception", remarks=f"Exception while getting response from 1st page. get_response() || {e}", logger=self.logger)
+            utils.terminate_script(job_id=self.job_id, status="EXCEPTION", remarks=f"Exception while getting response from 1st page. get_response() || {e}", logger=self.logger)
 
 
     # >> 
@@ -294,24 +295,30 @@ class Booking(AbstractScraper):
                 html_text = self.get_response(target_site, offset=offset)
                 if offset == 0:
                     total_pages = self.get_total_pages(html_text)
+                
+                if total_pages:
+                    reviews, success  = self.scrape_reviews(html_text, offset)
+                    if not success:
+                        return False
 
-                reviews, success  = self.scrape_reviews(html_text, offset)
-                if not success:
-                    return False
+                    if len(reviews) == 0:
+                        utils.debug(message=f"All reviews({total_reviews_scraped}) scraped", type="info", logger=self.logger)
+                        return None
 
-                if len(reviews) == 0:
-                    utils.debug(message=f"All reviews({total_reviews_scraped}) scraped", type="info", logger=self.logger)
-                    return None
-
-                offset += len(reviews)
-                reviews_added = self.process_reviews_add_to_db(reviews)
-                total_reviews_added_to_db += reviews_added or 0
-                utils.random_sleep()
-                if page_count > total_pages:
-                    utils.debug(message=f"All reviews({total_reviews_scraped}) scraped", type="info", logger=self.logger)
-                    return None
-                page_count += 1
+                    offset += len(reviews)
+                    reviews_added = self.process_reviews_add_to_db(reviews)
+                    total_reviews_added_to_db += reviews_added or 0
+                    utils.random_sleep()
+                    if page_count > total_pages:
+                        utils.debug(message=f"All reviews({total_reviews_scraped}) scraped", type="info", logger=self.logger)
+                        return None
+                    page_count += 1
+                else:
+                    file = f"{self.job_id}__error.html"
+                    utils.save_response_to_html(html_text, file)
+                    utils.debug(message=f"Unable to get Total Pages.\n{e}", type="error", logger=self.logger)
+                    utils.terminate_script(job_id=self.job_id, status="ERRORED", remarks=f"Unable to get total pages. Check html file ({file})", logger=self.logger)
 
         except Exception as e:
             utils.debug(message=f"Got exception in main function.\n{e}", type="exception", logger=self.logger)
-            utils.terminate_script(job_id=self.job_id, status="Exception", remarks=f"Got exception in main function.\n{e}", logger=self.logger)
+            utils.terminate_script(job_id=self.job_id, status="EXCEPTION", remarks=f"Got exception in main function.\n{e}", logger=self.logger)

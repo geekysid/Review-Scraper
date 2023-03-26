@@ -10,9 +10,9 @@
             "console": "integratedTerminal",
             "justMyCode": true,
             "args": [
-                "--url", "https://www.tripadvisor.com/VacationRentalReview-g32463-d18798751-Dramatic_Romantic_Oceanfront_Home_with_180_Degree_Ocean_View-Gualala_Mendocino_County_.html",
+                "--url", "https://www.booking.com/hotel/gb/jurys-inn-london-holborn.en-gb.html",
                 "--start-date", "2006-01-01",
-                "--end-date", "2023-03-06"
+                "--end-date", "2023-03-31"
             ]
         }
     ]
