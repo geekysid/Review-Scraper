@@ -109,6 +109,7 @@ class TrustPilot(AbstractScraper):
         try:
             json_endpoint = self.parsed_input_link_to_json_endpoint(buildId,target_site,page)
             proxy = utils.get_random_proxy(self.logger)
+            utils.debug(message=f"Page: {page} || URL: {json_endpoint}", type="debug", logger=self.logger)
 
             if proxy is None:
                 utils.terminate_script(job_id=self.job_id, status="ERRORED", remarks="Proxies not Found", logger=self.logger)
@@ -123,10 +124,10 @@ class TrustPilot(AbstractScraper):
                     reviews = ('pageProps' in response_json and  response_json['pageProps'] and 'reviews' in response_json['pageProps'] and response_json['pageProps']['reviews']) or []
 
                     if len(reviews) > 0:
-                        utils.debug(message=f"Page: {page} || Reviews_count: {len(reviews)}", type="debug", logger=self.logger)
+                        utils.debug(message=f" >> Reviews_count: {len(reviews)}", type="debug", logger=self.logger)
                         return reviews, True
                     else:
-                        utils.debug(message=f"Page: {page} || All reviews Scraped", type="debug", logger=self.logger)
+                        utils.debug(message=f"  >> All reviews Scraped", type="debug", logger=self.logger)
                         utils.terminate_script(job_id=self.job_id, status="COMPLETED", remarks="Scraped all required Reviews", logger=self.logger)
                         utils.debug(message=f"Updated status of script to COMPLETED", type="debug", logger=self.logger)
                         return False, False
@@ -215,7 +216,7 @@ class TrustPilot(AbstractScraper):
             try:
                 jsonObj = json.loads(jsonStr)
             except:
-                utils.terminate_script(job_id=self.job_id, status="Error", remarks=f"Not getting desired response in get_next_data_script_tag.", logger=self.logger)
+                utils.terminate_script(job_id=self.job_id, status="ERRORED", remarks=f"Not getting desired response in get_next_data_script_tag.", logger=self.logger)
                 return False
             buildId = (jsonObj and 'buildId' in jsonObj and jsonObj['buildId']) or ""
             pageProps = (jsonObj and 'props' in jsonObj and jsonObj['props'] and 'pageProps' in jsonObj['props'] and jsonObj['props']['pageProps']) or {}
@@ -225,13 +226,13 @@ class TrustPilot(AbstractScraper):
             return buildId, totalPages, reviews
         except Exception as e:
             utils.debug(message=f"Exception while getting data from script tag (get_next_data_script_tag()) || {e}", type="exception", logger=self.logger)
-            utils.terminate_script(job_id=self.job_id, status="Exception", remarks=f"Got exception in get_next_data_script_tag function.\n{e}", logger=self.logger)
+            utils.terminate_script(job_id=self.job_id, status="EXCEPTION", remarks=f"Got exception in get_next_data_script_tag function.\n{e}", logger=self.logger)
         return None, None, None
 
 
     # >> function to get response from the 1st page and returns soup
     def get_request(self):
-        utils.debug(message=f"Scraping reviews from Page # 1", type="info", logger=self.logger)
+        utils.debug(message=f"Scraping reviews from Page # 1  ||  {self.url}", type="info", logger=self.logger)
         for _ in range(5):
             try:
                 proxy = utils.get_random_proxy(self.logger)
@@ -282,6 +283,7 @@ class TrustPilot(AbstractScraper):
                         utils.random_sleep()
 
                 utils.debug(message=f"All reviews({total_reviews_scraped}) scraped from {total_pages} pages and {total_reviews_added_to_db} reviews added to DB", type="info", logger=self.logger)    
+                utils.terminate_script(job_id=self.job_id, status="COMPLETED", remarks="Scraped all required Reviews", logger=self.logger)
         except Exception as e:
             utils.debug(message=f"Got exception in main function.\n{e}", type="exception", logger=self.logger)
-            utils.terminate_script(job_id=self.job_id, status="Exception", remarks=f"Got exception in main function.\n{e}", logger=self.logger)
+            utils.terminate_script(job_id=self.job_id, status="EXCEPTION", remarks=f"Got exception in main function.\n{e}", logger=self.logger)

@@ -33,7 +33,7 @@ CREATE TABLE m2websolution_db.tb_jobs (
 	execution_start_date timestamp NULL,
 	execution_end_date timestamp NULL,
 	date_added timestamp DEFAULT CURRENT_TIMESTAMP NULL,
-	date_last_updated timestamp NULL,
+	last_updated timestamp NULL,
 	remarks text NULL,
 	CONSTRAINT tb_jobs_PK PRIMARY KEY (job_id),
 	CONSTRAINT tb_jobs_UN UNIQUE KEY (url,reviews_from_date,reviews_to_date),
@@ -63,28 +63,28 @@ COLLATE=utf8mb4_0900_ai_ci;
 
 -- tripdvisor review table
 CREATE TABLE m2websolution_db.tb_tripadvisor_reviews (
-	id int auto_increment NOT NULL,
-	job_id int NOT NULL,
-	published_date varchar(50) NULL,
-	rating DOUBLE NULL,
-	`text` text NULL,
-	title varchar(100) NULL,
-	username varchar(100) NULL,
-	user_info varchar(100) NULL,
-	publish_platform varchar(100) NULL,
-	provider_name varchar(100) NULL,
-	trip_info json NULL,
-	social_statistics json NULL,
-	owner_response json NULL,
-	hash varchar(500) NOT NULL,
-	scraped_date timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL,
-	CONSTRAINT tb_reviews_PK PRIMARY KEY (id),
-	CONSTRAINT tb_reviews_UN UNIQUE KEY (hash),
-	CONSTRAINT tb_reviews_FK FOREIGN KEY (job_id) REFERENCES m2websolution_db.tb_jobs(job_id) ON DELETE RESTRICT ON UPDATE RESTRICT
-)
-ENGINE=InnoDB
-DEFAULT CHARSET=utf8mb4
-COLLATE=utf8mb4_0900_ai_ci;
+  id int NOT NULL AUTO_INCREMENT,
+  job_id int NOT NULL,
+  published_date varchar(50) DEFAULT NULL,
+  rating double DEFAULT NULL,
+  text text,
+  title varchar(100) DEFAULT NULL,
+  username varchar(100) DEFAULT NULL,
+  user_info varchar(100) DEFAULT NULL,
+  publish_platform varchar(100) DEFAULT NULL,
+  provider_name varchar(100) DEFAULT NULL,
+  trip_info json DEFAULT NULL,
+  social_statistics json DEFAULT NULL,
+  owner_response json DEFAULT NULL,
+  hash varchar(500) NOT NULL,
+  scraped_date timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  tripadvisor_id int DEFAULT NULL,
+  PRIMARY KEY (id),
+  UNIQUE KEY tb_reviews_UN (hash),
+  KEY tb_reviews_FK (job_id),
+  CONSTRAINT tb_reviews_FK FOREIGN KEY (job_id) REFERENCES tb_jobs (job_id) ON DELETE RESTRICT ON UPDATE RESTRICT
+);
+
 
 -- trustpilot review table
 CREATE TABLE m2websolution_db.tb_trustpilot_reviews (
@@ -94,7 +94,7 @@ CREATE TABLE m2websolution_db.tb_trustpilot_reviews (
   published_date varchar(50) DEFAULT NULL,
   rating double DEFAULT NULL,
   text text,
-  title text DEFAULT NULL,
+  title text,
   likes varchar(100) DEFAULT NULL,
   consumer_name varchar(100) DEFAULT NULL,
   user_info json DEFAULT NULL,
@@ -107,6 +107,7 @@ CREATE TABLE m2websolution_db.tb_trustpilot_reviews (
   CONSTRAINT tb_trustpilot_FK FOREIGN KEY (job_id) REFERENCES tb_jobs (job_id) ON DELETE RESTRICT ON UPDATE RESTRICT
 );
 
+
 -- booking review table
 CREATE TABLE m2websolution_db.tb_booking_reviews (
   id int NOT NULL AUTO_INCREMENT,
@@ -117,8 +118,7 @@ CREATE TABLE m2websolution_db.tb_booking_reviews (
   room_type varchar(50) DEFAULT NULL,
   stay_duration varchar(50) DEFAULT NULL,
   stay_date varchar(50) DEFAULT NULL,
-  reviewed_date varchar(50) DEFAULT NULL,
-  title text DEFAULT NULL,
+  title text,
   like_comment text,
   dislike_comment text,
   hotel_response text,
@@ -132,3 +132,17 @@ CREATE TABLE m2websolution_db.tb_booking_reviews (
   KEY tb_booking_reviews_FK (job_id),
   CONSTRAINT tb_booking_FK FOREIGN KEY (job_id) REFERENCES tb_jobs (job_id) ON DELETE RESTRICT ON UPDATE RESTRICT
 );
+
+
+
+-- INSERT INTO tb_source (source_name, active) VALUES ('tripadvisor.com', true);
+-- INSERT INTO tb_source (source_name, active) VALUES ('trustpilot.com', true);
+-- INSERT INTO tb_source (source_name, active) VALUES ('booking.com', true);
+
+-- INSERT INTO tb_status (status, description) VALUES ('ADDED', 'Job was created');
+-- INSERT INTO tb_status (status, description) VALUES ('QUEUED', 'Job Added to the Queue');
+-- INSERT INTO tb_status (status, description) VALUES ('RUNNING', 'Job is currently executng');
+-- INSERT INTO tb_status (status, description) VALUES ('ERRORED', 'Job threw an error and terminated');
+-- INSERT INTO tb_status (status, description) VALUES ('COMPLETED', 'Job executed successfully');
+-- INSERT INTO tb_status (status, description) VALUES ('CANCELED', 'Job was canceled');
+-- INSERT INTO tb_status (status, description) VALUES ('EXCEPTION', 'Job thew an exception and terminated');
