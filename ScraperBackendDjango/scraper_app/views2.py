@@ -35,7 +35,7 @@ class ShowJobReviewsView(APIView):
             return Response({'status' : True ,'message' : f"Job Not Found With id '{job_id}' ", 'data' : None},status=status.HTTP_404_NOT_FOUND)
 
         job_obj = job_obj.first()
-        serializer = ViewJobReviewTbSerializer(job_obj, context={'source_x': job_obj.source.source_name})
+        serializer = ViewJobReviewTbSerializer(job_obj, context={'source_x': job_obj.source_id})
         # serializer = ViewJobReviewTbSerializer(job_obj, context={'source_x': job_obj.source.source_name})
         return Response({'status' : True ,'message' : f'Job Reviews Found Successfully ' , 'data' : serializer.data},status=status.HTTP_200_OK)
 
