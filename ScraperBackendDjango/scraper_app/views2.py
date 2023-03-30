@@ -51,7 +51,7 @@ class ShowlogView(APIView):
         return Response({'status' : True ,'message' : f'Job Lod Data Found Successfully ' , 'data' : serializer.data},status=status.HTTP_200_OK)
 
 from .models import TbSource
-class ShowRecentLogView(APIView):
+class ShowRecentJobView(APIView):
     def get(self, request, format=None):
         source_id = request.GET.get('source')
         limit     = request.GET.get('limit','50')
