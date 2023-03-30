@@ -49,3 +49,29 @@ class ShowlogView(APIView):
 
         serializer = ViewLogTbSerializer(log_objs,many = True)
         return Response({'status' : True ,'message' : f'Job Lod Data Found Successfully ' , 'data' : serializer.data},status=status.HTTP_200_OK)
+
+from .models import TbSource
+class ShowRecentLogView(APIView):
+    def get(self, request, format=None):
+        source_id = request.GET.get('source')
+        limit     = request.GET.get('limit','50')
+        if limit.isdigit():
+            limit = int(limit)
+
+        if source_id:
+            source_obj  = TbSource.objects.filter(source_name = source_id)
+            if not source_obj.exists():
+                source_msg = "Invalid "
+                log_objs = TbJobs.objects.all().order_by('-pk')[:limit]
+
+            if source_obj.exists():
+                source_obj = source_obj.first()
+                source_msg = source_obj.source_name
+
+                print(source_obj)
+
+                log_objs = TbJobs.objects.filter(source = source_obj).order_by('-pk')[:limit]
+
+        data = list(log_objs.values())
+        
+        return Response({'status' : True ,'message' : f'Last {limit} Job(s) Source {source_msg}' , 'data' : data},status=status.HTTP_200_OK)
