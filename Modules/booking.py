@@ -280,6 +280,9 @@ class Booking(AbstractScraper):
     # >> 
     def parse_input_link(self):
         page_name = self.url.replace(".html", "").replace(".htm", "").split("/")[-1].split(".")[0]
+        cc1       = self.url.replace(".html", "").replace(".htm", "").split("/")[-2]
+        return f"https://www.booking.com/reviewlist.en-gb.html?cc1=be&dist=1&pagename={page_name}&cc1={cc1}&rows=25&=&type=total&offset=__OFFSET__"
+
         return f"https://www.booking.com/reviewlist.en-gb.html?dist=1&pagename={page_name}&cc1=us&rows=25&=&type=total&offset=__OFFSET__"
 
 
