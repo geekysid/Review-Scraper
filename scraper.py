@@ -219,8 +219,8 @@ if __name__ == '__main__':
         logger = None
         logger, log_file = set_logger()
         args = args_parser()
-        # job_id = create_job(url=args.url, from_date=utils.date_to_str(args.start_date), to_date=utils.date_to_str(args.end_date))
-        job_id = 72
+        job_id = create_job(url=args.url, from_date=utils.date_to_str(args.start_date), to_date=utils.date_to_str(args.end_date))
+        # job_id = 72
         if job_id:
             add_log_file_to_table(log_file, job_id, logger)
             main(job_id, logger=logger)

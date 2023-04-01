@@ -54,7 +54,7 @@ class reviewsView(View):
             return JsonResponse({"job_id":job_id, "error": "Not a valid job"}, status=404)
 
         job_obj = job_obj.first()
-        serializer = ViewJobReviewTbSerializer(job_obj, context={'source_x': job_obj.source_id})
+        serializer = ViewJobReviewTbSerializer(job_obj, context={'source_x': job_obj.source.source_name})
         return JsonResponse({"job_id":job_id, 'data':serializer.data}, status=200) 
 
 

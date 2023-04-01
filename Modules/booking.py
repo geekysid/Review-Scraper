@@ -185,13 +185,15 @@ class Booking(AbstractScraper):
 
     # >> function to process reviews and add to DB
     def process_reviews_add_to_db(self, reviews):
+        reviews_added, published_date_below_range = None, True
         if reviews:
             processed_reviews, published_date_below_range = self.process_reviews(reviews)     # process Reviews
     
             # if processed reviews is not empty list
             if processed_reviews:
                 reviews_added = self.add_reviews_to_db(processed_reviews) # Save reviews to DB
-                return reviews_added
+            
+        return reviews_added, published_date_below_range
 
 
     # >> function tp make API call and scrape reviews
@@ -280,7 +282,10 @@ class Booking(AbstractScraper):
     # >> 
     def parse_input_link(self):
         page_name = self.url.replace(".html", "").replace(".htm", "").split("/")[-1].split(".")[0]
-        return f"https://www.booking.com/reviewlist.en-gb.html?dist=1&pagename={page_name}&cc1=us&rows=25&=&type=total&offset=__OFFSET__"
+        cc1       = self.url.replace(".html", "").replace(".htm", "").split("/")[-2]
+        return f"https://www.booking.com/reviewlist.en-gb.html?dist=1&pagename={page_name}&cc1={cc1}&rows=25&=&sort=f_recent_desc&type=total&offset=__OFFSET__"
+
+        # return f"https://www.booking.com/reviewlist.en-gb.html?dist=1&pagename={page_name}&cc1=us&rows=25&=&type=total&offset=__OFFSET__"
 
 
     def main(self):
@@ -293,6 +298,9 @@ class Booking(AbstractScraper):
             while True:
                 target_site = self.parse_input_link()
                 html_text = self.get_response(target_site, offset=offset)
+                if not html_text or 'page not found' in html_text.lower():
+                    raise ValueError("Problem with link as we got Page not Found")
+
                 if offset == 0:
                     total_pages = self.get_total_pages(html_text)
                 
@@ -306,9 +314,12 @@ class Booking(AbstractScraper):
                         return None
 
                     offset += len(reviews)
-                    reviews_added = self.process_reviews_add_to_db(reviews)
+                    reviews_added, published_date_below_range = self.process_reviews_add_to_db(reviews)
                     total_reviews_added_to_db += reviews_added or 0
                     utils.random_sleep()
+                    if published_date_below_range:
+                        utils.debug(message=f"All reviews({total_reviews_scraped}) scraped for a given time frame ({self.from_date } to {self.to_date })", type="info", logger=self.logger)
+                        return None
                     if page_count > total_pages:
                         utils.debug(message=f"All reviews({total_reviews_scraped}) scraped", type="info", logger=self.logger)
                         return None
@@ -318,6 +329,10 @@ class Booking(AbstractScraper):
                     utils.save_response_to_html(html_text, file)
                     utils.debug(message=f"Unable to get Total Pages.\n{e}", type="error", logger=self.logger)
                     utils.terminate_script(job_id=self.job_id, status="ERRORED", remarks=f"Unable to get total pages. Check html file ({file})", logger=self.logger)
+
+        except ValueError as e:
+            utils.debug(message=f"{e}", type="exception", logger=self.logger)
+            utils.terminate_script(job_id=self.job_id, status="EXCEPTION", remarks=f"{e}", logger=self.logger)
 
         except Exception as e:
             utils.debug(message=f"Got exception in main function.\n{e}", type="exception", logger=self.logger)

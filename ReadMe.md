@@ -24,12 +24,13 @@
 <!--  Details of Content  -->
 
 ###  Table of contents
--  [ Requirements ](#Requirements)
--  [ DB Schema ](#DB-Schema)
--  [ Connect to DB ](#Connect-to-DB)
--  [ API Endspoints ](#API-Endspoints)
--  [ Flowchart ](#Flowchart)
--  [ Celery ](#Celery)
+- [Table of contents](#table-of-contents)
+- [Requirements](#requirements)
+- [DB Schema](#db-schema)
+- [Connect to DB](#connect-to-db)
+- [API Endpoints (Base Url = http://64.227.157.110/api2)](#api-endpoints-base-url--http64227157110api2)
+- [Flowchart](#flowchart)
+- [Notes](#notes)
 
 <!--  Requirements  -->
 
@@ -67,7 +68,7 @@ We will have 5 tables:
     - *date_last_updated*: the date on which the job was last updated.
     - *remarks*: the date on which the job was last updated.
 
-- **reviews**: Table that will have all scraped reviews
+- **tb_<source>**: Table that will have all scraped reviews. We will have different table to store review for different source. For example if source is *booking.com*, then review table for this source will be *tb_booking*
     - *id*: id of review
     - *job_id*: id of the job to, which the review is associated to. Foreign keys to table _job_
     - *review_date*: date of the review made
@@ -75,7 +76,7 @@ We will have 5 tables:
     - *review_text*: review provided by the user
     - *reviewer*: a person who made the review
     - *services_used*: True if the reviewer has stayed in the hotel else false
-    - *other_metadata*: Any other metadata avaialable to be saved as a key-value pair in the JSON format
+    - *other_metadata*: Any other metadata available to be saved as a key-value pair in the JSON format
 
 - **log**: Table that will have the Log files details
     - *id*: id of the log
@@ -90,69 +91,73 @@ We will have 5 tables:
 
 ### Connect to DB
 
-- *Host*: "personal-db-do-user-9139362-0.b.db.ondigitalocean.com"
-- *Database*: "db_m2websolution"
-- *Username*: "m2websolution"
-- *Password*: "AVNS_QcrHGxP47NABM1AhWT"
-- *Port*: "25060"
+- *Host*: CHECK IN SERVER_DETAILS FILE
+- *Database*: CHECK IN SERVER_DETAILS FILE
+- *Username*: CHECK IN SERVER_DETAILS FILE
+- *Password*: CHECK IN SERVER_DETAILS FILE
+- *Port*: CHECK IN SERVER_DETAILS FILE
 
 <!-- API Endpoints -->
 
-### API Endspoints
+### API Endpoints (Base Url = http://64.227.157.110/api2)
 
 - **/add**: POST request using which user will send the URL from which reviews are to be scraped along with dates between which reviews are to be scrapped.
-    - *Params*:
+    - *Request*:
         - url: Required. URL from which data is to be scrapped
-        - from_date: Optional. Date after which reviews are to be scrapped.
-        - to_date: Optional. Date up to which reviews are to be scrapped.
+        - review_to_date: Optional. Date after which reviews are to be scrapped. If provided should be in format of "YYYY-MM-DD".
+        - review_from_date: Optional. Date up to which reviews are to be scrapped. If provided should be in format of "YYYY-MM-DD".
 
+                Request URL: http://64.227.157.110/api2/add/ 
+                Sample Requests Payload:
                 {
-                    "job_id": 1002,
-                    "dates": {
-                        "from": "01/01/2023",
-                        "to": "21/02/2023"
-                    }
+                    "url": "https://www.booking.com/hotel/gb/jurys-inn-london-holborn.en-gb.html",
+                    "review_to_date": "2023-03-28",
+                    "review_from_date": "2023-03-01"
                 }
 
     - *Response*:
         - job_id: returns the id of the job created in DB
 
+                Sample Response:
                 {
                     "status": 201,
                     "source": "Booking.com",
                     "job_id": 1002
                 }
 
-- **/status**: POST request using which the user can get the status of the job
-    - *Params*:
-        - job_id: Required. id of the job for which status is required.
+- **/status/<job_id>**: GET request using which the user can get the status of the job
+    - *Request*:
+        - job_id: Required. Id of the job for which status is required and is passed as the part of the url.
 
-                {
-                    "job_id": 1002
-                }
+                Sample URL: http://64.227.157.110/api2/status/2
 
     - *Response*:
         - status: status of the job
 
+                Sample Response:
                 {
-                    "status": 200,
-                    "job_id": 1002,
-                    "job_status": "QUEUED",
-                    "remarks": ""
+                    "status": true,
+                    "message": "Job Found Successfully ",
+                    "data": {
+                        "job_id": 2,
+                        "url": "https://www.tripadvisor.com/Restaurant_Review-g34515-d451087-Reviews-California_Grill_Lounge-Orlando_Florida.html",
+                        "status": "COMPLETED",
+                        "reviews_from_date": "1995-01-01T00:00:00Z",
+                        "reviews_to_date": "2023-03-25T00:00:00Z",
+                        "remarks": "Scraped all required Reviews"
+                    }
                 }
 
-- **/reviews**: POST request using which user can get reviews for a given job id
-    - *Params*:
+- **/reviews/<job_id>**: GET request using which user can get reviews for a given job ID
+    - *Request*:
         - job_id: Required. id of the job for reviews are to be returned.
 
-                {
-                    "job_id": 1002
-                }
+                Sample URL: http://64.227.157.110/api2/reviews/2
 
     - *Response*:
         - status: status of the job
         - reviews: list of all reviews
-
+                Sample Response:
                 {
                     "status": 200,
                     "source": "Booking.com",
@@ -162,17 +167,29 @@ We will have 5 tables:
                     "reviews:" []
                 }
 
-- **/logs/job-id**: GET request using which the user will get the URL of the downloadable log file.
+- **/logs/<job-id>**: GET request using which the user will get the URL of the downloadable log file.
+    - *Request*:
+        - job_id: Required. id of the job for reviews are to be returned.
+
+                Sample URL: http://64.227.157.110/api2/logs/2
+
     - *Response*:
         - job_id: id of the job
         - log-file: URL of the log file
 
                 {
-                    "job_id": 1002,
-                    "status": 200,
-                    "source": "Booking.com",
-                    "job_status": "COMPLETED",
-                    "log_file": "URL"
+                    "status": true,
+                    "message": "Job Lod Data Found Successfully ",
+                    "data": [
+                        {
+                            "id": 2,
+                            "file_name": "job-2__25-03-2023 23-15-18.log",
+                            "path_to_file": "/root/App/Logs/job-2__25-03-2023 23-15-18.log",
+                            "url_to_file": "",
+                            "date_added": "2023-03-25T23:15:18Z",
+                            "job": 2
+                        }
+                    ]
                 }
 
 <!-- Flowchart -->
@@ -188,6 +205,3 @@ We will have 5 tables:
 ### Notes
 
 - Proxy is to be used in every request
-- Have to take proper care that the script does not terminate because of any error. All expected and unexpected errors should be handled in a Try-Exception and when scripts encounter an exception, it should be properly logged in the log file.
-- Every job will have its log file with proper logs of every step and exception. We should be able to download this log file through API end point '/get_logs/<jobid>'
-

@@ -28,7 +28,11 @@ class TbJobs(models.Model):
     class Meta:
         managed = False
         db_table = 'tb_jobs'
-        unique_together = (('url', 'reviews_from_date', 'reviews_to_date'),)
+        # unique_together = (('url', 'reviews_from_date', 'reviews_to_date'),)
+    def __str__(self) -> str:
+        return f"{self.pk} {self.url}"
+        return super().__str__()
+
 
 
 class TbLogs(models.Model):
