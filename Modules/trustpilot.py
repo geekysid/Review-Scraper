@@ -76,16 +76,18 @@ class TrustPilot(AbstractScraper):
 
         return {}
 
-
     # >> function to process reviews and add to DB
     def process_reviews_add_to_db(self, reviews):
+        reviews_added, published_date_below_range = None, True
         if reviews:
             processed_reviews, published_date_below_range = self.process_reviews(reviews)     # process Reviews
     
             # if processed reviews is not empty list
             if processed_reviews:
                 reviews_added = self.add_reviews_to_db(processed_reviews) # Save reviews to DB
-                return reviews_added
+            
+        return reviews_added, published_date_below_range
+
 
 
     # >> function to built endpoint to scrape reviews for pages > 1
@@ -107,7 +109,7 @@ class TrustPilot(AbstractScraper):
             dict: api response
         """
         try:
-            json_endpoint = self.parsed_input_link_to_json_endpoint(buildId,target_site,page)
+            json_endpoint = self.parsed_input_link_to_json_endpoint(buildId, target_site, page)
             proxy = utils.get_random_proxy(self.logger)
             utils.debug(message=f"Page: {page} || URL: {json_endpoint}", type="debug", logger=self.logger)
 
@@ -212,7 +214,8 @@ class TrustPilot(AbstractScraper):
     def get_next_data_script_tag(self, page_soup):
         try:
             script_tag = page_soup.find('script', id='__NEXT_DATA__')
-            jsonStr = script_tag.text.strip()
+            # jsonStr = script_tag.text.strip()
+            jsonStr = script_tag.next.strip()
             try:
                 jsonObj = json.loads(jsonStr)
             except:
@@ -231,12 +234,12 @@ class TrustPilot(AbstractScraper):
 
 
     # >> function to get response from the 1st page and returns soup
-    def get_request(self):
+    def get_request(self, page_number):
         utils.debug(message=f"Scraping reviews from Page # 1  ||  {self.url}", type="info", logger=self.logger)
         for _ in range(5):
             try:
                 proxy = utils.get_random_proxy(self.logger)
-                response = requests.request("GET", url=self.url,proxies=proxy, headers={}, data={})
+                response = requests.request("GET", url=self.url.replace("__PAGE__", str(page_number)), proxies=proxy, headers={}, data={})
                 if response.status_code == 200:
                     soup = bs.BeautifulSoup(response.text,'html.parser')
                     return soup 
@@ -247,7 +250,9 @@ class TrustPilot(AbstractScraper):
 
     # >> 
     def parse_input_link(self):
-        return self.url.split('/')[-1]
+        business_url = self.url.split('/')[-1]
+        self.url = f"https://www.trustpilot.com/_next/data/businessunitprofile-consumersite-7555/review/{business_url}.json?page=__PAGE__&businessUnit={business_url}"
+        return business_url
 
 
     def main(self):
@@ -255,7 +260,7 @@ class TrustPilot(AbstractScraper):
             total_reviews_scraped = 0
             total_reviews_added_to_db = 0
             target_site = self.parse_input_link()
-            page_soup = self.get_request()          # function to get response from the 1st page and returns soup
+            page_soup = self.get_request(page_number=1)          # function to get response from the 1st page and returns soup
                 
             if not page_soup:
                 utils.debug(message=f"Unable to get response from 1st Page || Terminating script", type="error", logger=self.logger)
@@ -266,21 +271,25 @@ class TrustPilot(AbstractScraper):
                 total_reviews_scraped += (reviews and len(reviews)) or 0
                 utils.debug(message=f"Total pages: {total_pages}", type="info", logger=self.logger)
 
-                reviews_added = self.process_reviews_add_to_db(reviews)
+                reviews_added, published_date_below_range = self.process_reviews_add_to_db(reviews)
                 total_reviews_added_to_db += reviews_added or 0
                 utils.random_sleep()
 
                 # looping through all pages
-                if total_pages > 1:
+                if total_pages > 1 and not published_date_below_range:
                     for page in range(2, total_pages):
                         utils.debug(message=f"Scraping reviews from Page # {page}", type="info", logger=self.logger)
                         reviews, success = self.scrape_reviews(buildId, target_site, page)
                         if not success:
                             return False
-                        reviews_added = self.process_reviews_add_to_db(reviews)
+                        reviews_added, published_date_below_range = self.process_reviews_add_to_db(reviews)
                         total_reviews_scraped += (reviews and len(reviews)) or 0
                         total_reviews_added_to_db += reviews_added or 0
                         utils.random_sleep()
+                        if published_date_below_range:
+                            utils.debug(message=f"All reviews({total_reviews_scraped}) scraped from {total_pages} pages, for a given time frame ({self.from_date } to {self.to_date }) and {total_reviews_added_to_db} reviews added to DB", type="info", logger=self.logger)    
+                            utils.terminate_script(job_id=self.job_id, status="COMPLETED", remarks="Scraped all required Reviews", logger=self.logger)
+                            break
 
                 utils.debug(message=f"All reviews({total_reviews_scraped}) scraped from {total_pages} pages and {total_reviews_added_to_db} reviews added to DB", type="info", logger=self.logger)    
                 utils.terminate_script(job_id=self.job_id, status="COMPLETED", remarks="Scraped all required Reviews", logger=self.logger)

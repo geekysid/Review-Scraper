@@ -10,9 +10,9 @@
             "console": "integratedTerminal",
             "justMyCode": true,
             "args": [
-                "--url", "https://www.booking.com/hotel/de/dreischwesternherz.en-gb.html",
-                "--start-date", "2006-02-11",
-                "--end-date", "2023-03-12"
+                "--url", "https://www.trustpilot.com/review/www.hotels.com",
+                "--start-date", "2023-02-09",
+                "--end-date", "2023-03-31"
             ]
         }
     ]
