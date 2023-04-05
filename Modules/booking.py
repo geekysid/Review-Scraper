@@ -43,7 +43,8 @@ def intro_deco():
 # Note: class that will be used to scrape reviews from TripAdvisor
 class Booking(AbstractScraper):
     def __init__(self, url: str="", from_date: str="2000-01-01", to_date: str="", job_id: str="", logger=None):
-        self.url = url
+        self.url = url.split('?')[0]
+        print(self.url)
         self.from_date = from_date      # lower limit of date range
         self.to_date = to_date or datetime.now().strftime("%Y-%m-%d")   # upper limit of the date range
         self.job_id = job_id
@@ -228,7 +229,7 @@ class Booking(AbstractScraper):
     def get_total_pages(self, html_text):
         selector = Selector(text=html_text)
         # checking if page is true
-        review_section = selector.xpath("//ul[@class='review_list']")
+        review_section = selector.xpath("//ul[contains(@class, 'review_list') or contains(@class, 'comments-list')]")
         if review_section:
             pages_el = selector.xpath("//a[@class='bui-pagination__link']/span[1]/text()").extract()
             try:
@@ -237,7 +238,7 @@ class Booking(AbstractScraper):
                 total_pages = 0
         else:
             total_pages = -1
-        utils.debug(message=f"tOTAL pAGES: {total_pages}", type="info", logger=self.logger)
+        utils.debug(message=f"Total Pages: {total_pages}", type="info", logger=self.logger)
         return total_pages
 
     # >> function to make request to server to get reviews
@@ -291,7 +292,7 @@ class Booking(AbstractScraper):
         page_name = self.url.replace(".html", "").replace(".htm", "").split("/")[-1].split(".")[0]  # nobu-hotel-london-portman-square
         cc1       = self.url.replace(".html", "").replace(".htm", "").split("/")[-2]                # gb
         url = f"https://www.booking.com/reviewlist.en-gb.html?dist=1&pagename={page_name}&cc1={cc1}&rows=25&=&sort=f_recent_desc&type=total&offset=__OFFSET__"
-        utils.debug(f"URL: {url}", "info")
+        utils.debug(f"Target URL: {url}", "info")
         return url
 
 
@@ -302,22 +303,23 @@ class Booking(AbstractScraper):
             total_reviews_scraped = 0
             total_reviews_added_to_db = 0
 
+            target_site = self.parse_input_link()
             while True:
-                target_site = self.parse_input_link()
                 html_text = self.get_response(target_site, offset=offset)
                 if not html_text or 'page not found' in html_text.lower():
                     raise ValueError("Problem with link as we got Page not Found")
 
                 if offset == 0:
                     total_pages = self.get_total_pages(html_text)
-                
+
                 if total_pages >= 0:
                     reviews, success  = self.scrape_reviews(html_text, offset)
                     if not success:
                         return False
 
+                    total_reviews_scraped += reviews and len(reviews) or 0
                     if len(reviews) == 0:
-                        utils.debug(message=f"All reviews({total_reviews_scraped}) scraped", type="info", logger=self.logger)
+                        utils.debug(message=f"All reviews({total_reviews_scraped}) scraped and {total_reviews_added_to_db} reviews added to DB", type="info", logger=self.logger)
                         return None
 
                     offset += len(reviews)
@@ -325,10 +327,10 @@ class Booking(AbstractScraper):
                     total_reviews_added_to_db += reviews_added or 0
                     utils.random_sleep()
                     if published_date_below_range:
-                        utils.debug(message=f"All reviews({total_reviews_scraped}) scraped for a given time frame ({self.from_date } to {self.to_date })", type="info", logger=self.logger)
+                        utils.debug(message=f"All reviews({total_reviews_scraped}) scraped  and {total_reviews_added_to_db} reviews added to DB for a given time frame ({self.from_date } to {self.to_date })", type="info", logger=self.logger)
                         return None
                     if page_count > total_pages:
-                        utils.debug(message=f"All reviews({total_reviews_scraped}) scraped", type="info", logger=self.logger)
+                        utils.debug(message=f"All reviews({total_reviews_scraped}) scraped and {total_reviews_added_to_db} reviews added to DB", type="info", logger=self.logger)
                         return None
                     page_count += 1
                 else:
