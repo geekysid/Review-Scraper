@@ -234,24 +234,25 @@ class TrustPilot(AbstractScraper):
 
 
     # >> function to get response from the 1st page and returns soup
-    def get_request(self, page_number):
-        utils.debug(message=f"Scraping reviews from Page # 1  ||  {self.url}", type="info", logger=self.logger)
+    def process_1st_page(self):
+        url = self.url
+        utils.debug(message=f"Scraping reviews from Page # 1  ||  {url}", type="info", logger=self.logger)
         for _ in range(5):
             try:
                 proxy = utils.get_random_proxy(self.logger)
-                response = requests.request("GET", url=self.url.replace("__PAGE__", str(page_number)), proxies=proxy, headers={}, data={})
+                response = requests.request("GET", url=url, proxies=proxy, headers={}, data={})
                 if response.status_code == 200:
                     soup = bs.BeautifulSoup(response.text,'html.parser')
                     return soup 
             except Exception as e:
-                utils.debug(message=f"Exception while getting response from 1st page. get_request() || {e}", type="exception", logger=self.logger)
+                utils.debug(message=f"Exception while getting response from 1st page. process_1st_page() || {e}", type="exception", logger=self.logger)
                 return None
 
 
     # >> 
-    def parse_input_link(self):
+    def parse_input_link(self, buildId):
         business_url = self.url.split('/')[-1]
-        self.url = f"https://www.trustpilot.com/_next/data/businessunitprofile-consumersite-7555/review/{business_url}.json?page=__PAGE__&businessUnit={business_url}"
+        self.url = f"https://www.trustpilot.com/_next/data/{buildId}/review/{business_url}.json?page=__PAGE__&businessUnit={business_url}"
         return business_url
 
 
@@ -259,14 +260,14 @@ class TrustPilot(AbstractScraper):
         try:
             total_reviews_scraped = 0
             total_reviews_added_to_db = 0
-            target_site = self.parse_input_link()
-            page_soup = self.get_request(page_number=1)          # function to get response from the 1st page and returns soup
-                
+            page_soup = self.process_1st_page()          # function to get response from the 1st page and returns soup
+
             if not page_soup:
                 utils.debug(message=f"Unable to get response from 1st Page || Terminating script", type="error", logger=self.logger)
                 sys.exit()
 
             buildId, total_pages, reviews = self.get_next_data_script_tag(page_soup)
+            target_site = self.parse_input_link(buildId)
             if reviews:
                 total_reviews_scraped += (reviews and len(reviews)) or 0
                 utils.debug(message=f"Total pages: {total_pages}", type="info", logger=self.logger)
