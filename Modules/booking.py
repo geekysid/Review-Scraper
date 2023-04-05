@@ -227,12 +227,18 @@ class Booking(AbstractScraper):
     # >> function to fetch total pages from response
     def get_total_pages(self, html_text):
         selector = Selector(text=html_text)
-        pages_el = selector.xpath("//a[@class='bui-pagination__link']/span[1]/text()").extract()
-        try:
-            return (pages_el and int(pages_el[-1])) or 0
-        except:
-            return 0
-
+        # checking if page is true
+        review_section = selector.xpath("//ul[@class='review_list']")
+        if review_section:
+            pages_el = selector.xpath("//a[@class='bui-pagination__link']/span[1]/text()").extract()
+            try:
+                total_pages = (pages_el and int(pages_el[-1])) or 0
+            except:
+                total_pages = 0
+        else:
+            total_pages = -1
+        utils.debug(message=f"tOTAL pAGES: {total_pages}", type="info", logger=self.logger)
+        return total_pages
 
     # >> function to make request to server to get reviews
     def get_response(self, url: str, offset: int=0):
@@ -281,11 +287,12 @@ class Booking(AbstractScraper):
 
     # >> 
     def parse_input_link(self):
-        page_name = self.url.replace(".html", "").replace(".htm", "").split("/")[-1].split(".")[0]
-        cc1       = self.url.replace(".html", "").replace(".htm", "").split("/")[-2]
-        return f"https://www.booking.com/reviewlist.en-gb.html?dist=1&pagename={page_name}&cc1={cc1}&rows=25&=&sort=f_recent_desc&type=total&offset=__OFFSET__"
-
-        # return f"https://www.booking.com/reviewlist.en-gb.html?dist=1&pagename={page_name}&cc1=us&rows=25&=&type=total&offset=__OFFSET__"
+        # https://www.booking.com/hotel/gb/nobu-hotel-london-portman-square.en-gb.html
+        page_name = self.url.replace(".html", "").replace(".htm", "").split("/")[-1].split(".")[0]  # nobu-hotel-london-portman-square
+        cc1       = self.url.replace(".html", "").replace(".htm", "").split("/")[-2]                # gb
+        url = f"https://www.booking.com/reviewlist.en-gb.html?dist=1&pagename={page_name}&cc1={cc1}&rows=25&=&sort=f_recent_desc&type=total&offset=__OFFSET__"
+        utils.debug(f"URL: {url}", "info")
+        return url
 
 
     def main(self):
@@ -304,7 +311,7 @@ class Booking(AbstractScraper):
                 if offset == 0:
                     total_pages = self.get_total_pages(html_text)
                 
-                if total_pages:
+                if total_pages >= 0:
                     reviews, success  = self.scrape_reviews(html_text, offset)
                     if not success:
                         return False
@@ -327,7 +334,7 @@ class Booking(AbstractScraper):
                 else:
                     file = f"{self.job_id}__error.html"
                     utils.save_response_to_html(html_text, file)
-                    utils.debug(message=f"Unable to get Total Pages.\n{e}", type="error", logger=self.logger)
+                    utils.debug(message=f"Unable to get Total Pages.\n", type="error", logger=self.logger)
                     utils.terminate_script(job_id=self.job_id, status="ERRORED", remarks=f"Unable to get total pages. Check html file ({file})", logger=self.logger)
 
         except ValueError as e:

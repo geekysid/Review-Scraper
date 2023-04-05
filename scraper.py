@@ -174,7 +174,7 @@ def set_logger(job_id=None):
     file_handler.setFormatter(formatter)
     logger.addHandler(file_handler)
 
-    logger.info(f"{os.path.basename(__file__)} || Time: {datetime.datetime.now().strftime('%Y-%m-%d %H-%M-%S')}")
+    logger.info(f"{os.path.basename(__file__)} || Time: {datetime.datetime.now().strftime('%Y-%m-%d %H-%M-%S')}  || JOB # {job_id}")
     if job_id:
         add_log_file_to_table(log_file, job_id, logger)
         return logger
