@@ -81,17 +81,17 @@ def get_job_details(job_id: int) -> tuple:
     """
 
     try:
-        query = "SELECT url, reviews_from_date, reviews_to_date, status FROM tb_jobs WHERE job_id='{}'".format(job_id)
+        query = "SELECT url, reviews_from_date, reviews_to_date, status, webhook_url FROM tb_jobs WHERE job_id='{}'".format(job_id)
         result = DBConnector().execute_fetch(query, fetch_all=False)
         if result:
             if result[3].lower() in [ 'added', 'queued' ]:
-                return result[0], utils.date_to_str(result[1]), utils.date_to_str(result[2])
+                return result[0], utils.date_to_str(result[1]), utils.date_to_str(result[2]), result[4]
             else:
                 utils.debug(message=f"Job with ID {job_id}, has a status of {result[3]}. Can only process Jobs with status 'ADDED' or 'QUEUED'. Terminating Script", type="ERROR", logger=logger)
-                return
         utils.debug(message=f"No job found with given ID {job_id}. Terminating Script...", type="error", logger=logger)
     except Exception as e:
         utils.debug(message=f"Exception while fetching job details for job_id {job_id}\n{e}\n\nTerminating Script...", type="exception", logger=logger)
+    return None, None, None, None
 
 
 # << main function that does all task
@@ -112,7 +112,7 @@ def main(job_id, logger=None):
     try:
         job_details = get_job_details(job_id)
         if job_details:
-            url, from_date, to_date = job_details
+            url, from_date, to_date, webhook_url = job_details
             if utils.update_job_status(job_id, new_status='RUNNING', execution_start_date=datetime.datetime.now(), logger=logger):
                 if 'tripadvisor.com' in url:
                     tripadvisor.TripAdvisor(job_id=job_id, url=url, from_date=from_date, to_date=to_date, logger=logger)
@@ -120,6 +120,9 @@ def main(job_id, logger=None):
                     trustpilot.TrustPilot(job_id=job_id, url=url, from_date=from_date, to_date=to_date, logger=logger)
                 elif 'booking.com' in url:
                     booking.Booking(job_id=job_id, url=url, from_date=from_date, to_date=to_date, logger=logger)
+                
+                if webhook_url:
+                    utils.push_to_webhook(job_id, webhook_url)
 
     except Exception as e:
         utils.debug(message=f"Exception while running scrapers. \n{e}", type="exception", logger=logger)
@@ -127,13 +130,14 @@ def main(job_id, logger=None):
 
 
 # << function used to create job
-def create_job(url: str, from_date: str="2020-01-01", to_date: str=utils.date_to_str(datetime.datetime.now())) -> int:
+def create_job(url: str, from_date: str="2020-01-01", to_date: str=utils.date_to_str(datetime.datetime.now()), webhook_url=None) -> int:
     """function used to create job
 
     Args:
         url (str): url from which reviews are to be scraped
         from_date (str, optional): date from which reviews are be scrape. Defaults to "2020-01-01".
         to_date (str, optional): date upto which reviews are be scrape. Defaults to Current Date.
+        webhook_url (str, optional): URL to which reviews will be pushed once scraping is completed.
 
     Returns:
         int: id of the job created
@@ -142,9 +146,9 @@ def create_job(url: str, from_date: str="2020-01-01", to_date: str=utils.date_to
     try:
         source = utils.get_source(url)
         job_query = """
-            INSERT INTO tb_jobs (url, source, reviews_from_date, reviews_to_date, status, date_added)
-            VALUES('{}', '{}', '{}', '{}', 'ADDED', now());
-        """.format(url, source, utils.date_from_str(from_date), utils.date_from_str(to_date))
+            INSERT INTO tb_jobs (url, source, reviews_from_date, reviews_to_date, status, date_added, webhook_url)
+            VALUES('{}', '{}', '{}', '{}', 'ADDED', now(), '{}');
+        """.format(url, source, utils.date_from_str(from_date), utils.date_from_str(to_date), webhook_url)
         job_id = DBConnector().execute_insert_update(job_query, inserted_id=True)
         if job_id:
             utils.debug(message=f"New Job created with id {job_id}", type="info", logger=logger)
@@ -211,6 +215,11 @@ def args_parser():
         help="End Date in YYYY-MM-DD format",
         type = str
     )
+    parser.add_argument(
+        "-w", "--webhook",
+        dest="webhook_url",
+        type = str
+    )
     return parser.parse_args()
 
 
@@ -219,7 +228,7 @@ if __name__ == '__main__':
         logger = None
         logger, log_file = set_logger()
         args = args_parser()
-        job_id = create_job(url=args.url, from_date=utils.date_to_str(args.start_date), to_date=utils.date_to_str(args.end_date))
+        job_id = create_job(url=args.url, from_date=utils.date_to_str(args.start_date), to_date=utils.date_to_str(args.end_date), webhook_url=args.webhook_url)
         # job_id = 72
         if job_id:
             add_log_file_to_table(log_file, job_id, logger)
