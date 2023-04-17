@@ -12,7 +12,7 @@
 # ****** # # # # # # # # # # # # # # # # # # # # # # # ****** #
 
 
-import os, pandas, pyfiglet, time, random, hashlib
+import os, pandas, pyfiglet, time, random, hashlib, requests, json
 from datetime import datetime
 from Modules.db_connector import DBConnector
 from urllib.parse import urlparse
@@ -328,3 +328,37 @@ def clean_text(text: str) -> str:
     else:
         text = ''
     return text
+
+
+# << function to send data to a given webhook url
+def push_to_webhook(job_id, webhook_url: str) -> bool:
+    """function to send data to a given webhook url
+
+    Args:
+        job_id (int): Id of the job
+        webhook_url (str): url of the webhook
+
+    Returns:
+        bool: True if data was sent successfully, False otherwise
+    """
+
+    try:
+        if not webhook_url:
+            debug(f"No Webhook found.", "error")
+            return False
+
+        response = requests.get(f"http://64.227.157.110/api2/reviews/{job_id}")
+        # response = requests.get(f"http://127.0.0.1:8000/api2/reviews/{job_id}")
+        if response.status_code == 200:
+            webhook_resp = requests.post(webhook_url, headers={}, data=response.text)
+            if webhook_resp.status_code in (200, 201, 202):
+                debug(f"Reviews pushed to webhook: {webhook_url}.", "info")
+                return True
+            else:
+                raise Exception(f"Got {webhook_resp.status_code} status code while pushing data to webhook")
+        else:
+            raise Exception(f"Got {response.status_code} status code while fetching reviews from DB")
+    except Exception as e:
+        debug(f"Exception while passing data to webhooks || {e}", "exceptions")
+    return False
+        

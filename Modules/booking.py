@@ -300,6 +300,7 @@ class Booking(AbstractScraper):
         try:
             offset = 0
             page_count = 0
+            is_done = False
             total_reviews_scraped = 0
             total_reviews_added_to_db = 0
 
@@ -319,19 +320,24 @@ class Booking(AbstractScraper):
 
                     total_reviews_scraped += reviews and len(reviews) or 0
                     if len(reviews) == 0:
-                        utils.debug(message=f"All reviews({total_reviews_scraped}) scraped and {total_reviews_added_to_db} reviews added to DB", type="info", logger=self.logger)
-                        return None
+                        is_done = True
+                        message = f"All reviews({total_reviews_scraped}) scraped and {total_reviews_added_to_db} reviews added to DB"
 
                     offset += len(reviews)
                     reviews_added, published_date_below_range = self.process_reviews_add_to_db(reviews)
                     total_reviews_added_to_db += reviews_added or 0
                     utils.random_sleep()
+                    
+                    message = f"All reviews({total_reviews_scraped}) scraped  and {total_reviews_added_to_db} reviews added to DB for a given time frame ({self.from_date } to {self.to_date })"
                     if published_date_below_range:
-                        utils.debug(message=f"All reviews({total_reviews_scraped}) scraped  and {total_reviews_added_to_db} reviews added to DB for a given time frame ({self.from_date } to {self.to_date })", type="info", logger=self.logger)
-                        return None
+                        is_done = True
                     if page_count > total_pages:
-                        utils.debug(message=f"All reviews({total_reviews_scraped}) scraped and {total_reviews_added_to_db} reviews added to DB", type="info", logger=self.logger)
-                        return None
+                        is_done = True
+                    if is_done:
+                        utils.terminate_script(job_id=self.job_id, status="COMPLETED", remarks=message, logger=self.logger)
+                        utils.debug(message=message, type="info", logger=self.logger)
+                        return
+                    
                     page_count += 1
                 else:
                     file = f"{self.job_id}__error.html"

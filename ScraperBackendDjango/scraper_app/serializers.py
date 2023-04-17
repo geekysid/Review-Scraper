@@ -29,6 +29,7 @@ class AddJobTbSerializer(serializers.ModelSerializer):
 
     job_id = serializers.IntegerField(required=False, read_only=True)
     status = serializers.CharField(required=False, read_only=True)
+    webhook_url = serializers.CharField(required=False)
     remarks = serializers.CharField(required=False, read_only=True)
 
     reviews_from_date = serializers.DateTimeField(required=False, default=old_date_time)
@@ -36,7 +37,7 @@ class AddJobTbSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = TbJobs
-        fields = ['job_id', 'url','status', 'reviews_from_date', 'reviews_to_date', 'remarks']
+        fields = ['job_id', 'url','webhook_url','status', 'reviews_from_date', 'reviews_to_date', 'remarks']
 
         # validators = [serializers.UniqueTogetherValidator(
         #         queryset=TbJobs.objects.all(),
@@ -72,7 +73,7 @@ class AddJobTbSerializer(serializers.ModelSerializer):
         return super().create(validated_data)
 
 
-view_serializer_dict = {"tripadvisor.com": "trip_reviewtb",'trustpilot.com':'trustpilot_reviewtb'}
+view_serializer_dict = {"tripadvisor.com": "trip_reviewtb",'trustpilot.com':'trustpilot_reviewtb','booking.com':'booking_reviewtb'}
 class ViewJobReviewTbSerializer(serializers.ModelSerializer):
     reviews = ViewReviewTbSerializer(many=True, source='trip_reviewtb')
     job_id = serializers.IntegerField(required=False, read_only=True)
