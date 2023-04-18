@@ -93,8 +93,8 @@ class Booking(AbstractScraper):
 
         bulk_insert_query = """
             INSERT IGNORE INTO m2websolution_db.tb_booking_reviews
-            (job_id, published_date, reviewer_name, reviewer_country, room_type, stay_duration, stay_date, title, like_comment, dislike_comment, hotel_response, rating, likes, hash, scraped_date)
-            VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP);
+            (job_id, published_date, reviewer_name, reviewer_avatar, reviewer_country, room_type, stay_duration, stay_date, title, like_comment, dislike_comment, hotel_response, rating, likes, hash, scraped_date)
+            VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP);
         """
         params = [ tuple(review.values()) for review in reviews ]
 
@@ -129,6 +129,10 @@ class Booking(AbstractScraper):
                         review_dict['reviewer_name'] = review.xpath(".//span[contains(@class, 'bui-avatar-block__title')]/text()").extract_first().strip()
                     except:
                         review_dict['reviewer_name'] = ""
+                    try:
+                        review_dict['reviewer_avatar'] = review.xpath(".//img[@class='bui-avatar__image']/@src").extract_first().strip()
+                    except:
+                        review_dict['reviewer_avatar'] = ""
                     try:
                         review_dict['reviewer_country'] = review.xpath(".//span[contains(@class, 'bui-avatar-block__subtitle')]/text()").extract_first().strip()
                     except:

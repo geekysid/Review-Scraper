@@ -10,9 +10,9 @@
             "console": "integratedTerminal",
             "justMyCode": true,
             "args": [
-                "--url", "https://www.booking.com/hotel/es/mit-house-san-miguel-en-madrid.en-gb.htm",
-                "--start-date", "2000-03-24",
-                "--end-date", "2023-04-15",
+                "--url", "https://www.trustpilot.com/review/www.hotels.com",
+                "--start-date", "2023-03-23",
+                "--end-date", "2023-04-20",
                 "--webhook", "test.com",
             ]
         }
