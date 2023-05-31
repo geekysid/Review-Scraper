@@ -43,7 +43,8 @@ def intro_deco():
 # Note: class that will be used to scrape reviews from TripAdvisor
 class Booking(AbstractScraper):
     def __init__(self, url: str="", from_date: str="2000-01-01", to_date: str="", job_id: str="", logger=None):
-        self.url = url
+        self.url = url.split('?')[0]
+        print(self.url)
         self.from_date = from_date      # lower limit of date range
         self.to_date = to_date or datetime.now().strftime("%Y-%m-%d")   # upper limit of the date range
         self.job_id = job_id
@@ -92,8 +93,8 @@ class Booking(AbstractScraper):
 
         bulk_insert_query = """
             INSERT IGNORE INTO m2websolution_db.tb_booking_reviews
-            (job_id, published_date, reviewer_name, reviewer_country, room_type, stay_duration, stay_date, title, like_comment, dislike_comment, hotel_response, rating, likes, hash, scraped_date)
-            VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP);
+            (job_id, published_date, reviewer_name, reviewer_avatar, reviewer_country, room_type, stay_duration, stay_date, title, like_comment, dislike_comment, hotel_response, rating, likes, hash, scraped_date)
+            VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP);
         """
         params = [ tuple(review.values()) for review in reviews ]
 
@@ -128,6 +129,10 @@ class Booking(AbstractScraper):
                         review_dict['reviewer_name'] = review.xpath(".//span[contains(@class, 'bui-avatar-block__title')]/text()").extract_first().strip()
                     except:
                         review_dict['reviewer_name'] = ""
+                    try:
+                        review_dict['reviewer_avatar'] = review.xpath(".//img[@class='bui-avatar__image']/@src").extract_first().strip()
+                    except:
+                        review_dict['reviewer_avatar'] = ""
                     try:
                         review_dict['reviewer_country'] = review.xpath(".//span[contains(@class, 'bui-avatar-block__subtitle')]/text()").extract_first().strip()
                     except:
@@ -185,13 +190,15 @@ class Booking(AbstractScraper):
 
     # >> function to process reviews and add to DB
     def process_reviews_add_to_db(self, reviews):
+        reviews_added, published_date_below_range = None, True
         if reviews:
             processed_reviews, published_date_below_range = self.process_reviews(reviews)     # process Reviews
     
             # if processed reviews is not empty list
             if processed_reviews:
                 reviews_added = self.add_reviews_to_db(processed_reviews) # Save reviews to DB
-                return reviews_added
+            
+        return reviews_added, published_date_below_range
 
 
     # >> function tp make API call and scrape reviews
@@ -225,12 +232,18 @@ class Booking(AbstractScraper):
     # >> function to fetch total pages from response
     def get_total_pages(self, html_text):
         selector = Selector(text=html_text)
-        pages_el = selector.xpath("//a[@class='bui-pagination__link']/span[1]/text()").extract()
-        try:
-            return (pages_el and int(pages_el[-1])) or 0
-        except:
-            return 0
-
+        # checking if page is true
+        review_section = selector.xpath("//ul[contains(@class, 'review_list') or contains(@class, 'comments-list')]")
+        if review_section:
+            pages_el = selector.xpath("//a[@class='bui-pagination__link']/span[1]/text()").extract()
+            try:
+                total_pages = (pages_el and int(pages_el[-1])) or 0
+            except:
+                total_pages = 0
+        else:
+            total_pages = -1
+        utils.debug(message=f"Total Pages: {total_pages}", type="info", logger=self.logger)
+        return total_pages
 
     # >> function to make request to server to get reviews
     def get_response(self, url: str, offset: int=0):
@@ -279,48 +292,66 @@ class Booking(AbstractScraper):
 
     # >> 
     def parse_input_link(self):
-        page_name = self.url.replace(".html", "").replace(".htm", "").split("/")[-1].split(".")[0]
-        cc1       = self.url.replace(".html", "").replace(".htm", "").split("/")[-2]
-        return f"https://www.booking.com/reviewlist.en-gb.html?cc1=be&dist=1&pagename={page_name}&cc1={cc1}&rows=25&=&type=total&offset=__OFFSET__"
-
-        return f"https://www.booking.com/reviewlist.en-gb.html?dist=1&pagename={page_name}&cc1=us&rows=25&=&type=total&offset=__OFFSET__"
+        # https://www.booking.com/hotel/gb/nobu-hotel-london-portman-square.en-gb.html
+        page_name = self.url.replace(".html", "").replace(".htm", "").split("/")[-1].split(".")[0]  # nobu-hotel-london-portman-square
+        cc1       = self.url.replace(".html", "").replace(".htm", "").split("/")[-2]                # gb
+        url = f"https://www.booking.com/reviewlist.en-gb.html?dist=1&pagename={page_name}&cc1={cc1}&rows=25&=&sort=f_recent_desc&type=total&offset=__OFFSET__"
+        utils.debug(f"Target URL: {url}", "info")
+        return url
 
 
     def main(self):
         try:
             offset = 0
             page_count = 0
+            is_done = False
             total_reviews_scraped = 0
             total_reviews_added_to_db = 0
 
+            target_site = self.parse_input_link()
             while True:
-                target_site = self.parse_input_link()
                 html_text = self.get_response(target_site, offset=offset)
+                if not html_text or 'page not found' in html_text.lower():
+                    raise ValueError("Problem with link as we got Page not Found")
+
                 if offset == 0:
                     total_pages = self.get_total_pages(html_text)
-                
-                if total_pages:
+
+                if total_pages >= 0:
                     reviews, success  = self.scrape_reviews(html_text, offset)
                     if not success:
                         return False
 
+                    total_reviews_scraped += reviews and len(reviews) or 0
                     if len(reviews) == 0:
-                        utils.debug(message=f"All reviews({total_reviews_scraped}) scraped", type="info", logger=self.logger)
-                        return None
+                        is_done = True
+                        message = f"All reviews({total_reviews_scraped}) scraped and {total_reviews_added_to_db} reviews added to DB"
 
                     offset += len(reviews)
-                    reviews_added = self.process_reviews_add_to_db(reviews)
+                    reviews_added, published_date_below_range = self.process_reviews_add_to_db(reviews)
                     total_reviews_added_to_db += reviews_added or 0
                     utils.random_sleep()
+                    
+                    message = f"All reviews({total_reviews_scraped}) scraped  and {total_reviews_added_to_db} reviews added to DB for a given time frame ({self.from_date } to {self.to_date })"
+                    if published_date_below_range:
+                        is_done = True
                     if page_count > total_pages:
-                        utils.debug(message=f"All reviews({total_reviews_scraped}) scraped", type="info", logger=self.logger)
-                        return None
+                        is_done = True
+                    if is_done:
+                        utils.terminate_script(job_id=self.job_id, status="COMPLETED", remarks=message, logger=self.logger)
+                        utils.debug(message=message, type="info", logger=self.logger)
+                        return
+                    
                     page_count += 1
                 else:
                     file = f"{self.job_id}__error.html"
                     utils.save_response_to_html(html_text, file)
-                    utils.debug(message=f"Unable to get Total Pages.\n{e}", type="error", logger=self.logger)
+                    utils.debug(message=f"Unable to get Total Pages.\n", type="error", logger=self.logger)
                     utils.terminate_script(job_id=self.job_id, status="ERRORED", remarks=f"Unable to get total pages. Check html file ({file})", logger=self.logger)
+
+        except ValueError as e:
+            utils.debug(message=f"{e}", type="exception", logger=self.logger)
+            utils.terminate_script(job_id=self.job_id, status="EXCEPTION", remarks=f"{e}", logger=self.logger)
 
         except Exception as e:
             utils.debug(message=f"Got exception in main function.\n{e}", type="exception", logger=self.logger)

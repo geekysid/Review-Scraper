@@ -84,14 +84,15 @@ class TripAdvisor(AbstractScraper):
         """
 
         return {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/110.0',
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/111.0',
             'Accept': '*/*',
             'Accept-Language': 'en-US,en;q=0.5',
-            'Accept-Encoding': 'gzip, deflate, br',
+            'Referer': 'https://www.tripadvisor.com/Hotel_Review-g150812-d754465-Reviews-or10-Rosewood_Mayakoba-Playa_del_Carmen_Yucatan_Peninsula.html',
             'content-type': 'application/json',
-            'x-requested-by': 'TNI1625^!ALrRQOVySGV+HrqWI0C32dBjGs764Nw+kH2pDyl5PSlKhGeHGPC5rRVQ1dBXffQnew4pP+ooVY74QNUHpWb+TL3EgvwxIGK3psvBnjqQsDZ/48zQ8NWuWaIWIPl357ApLonnvdDxL0lWmgJL/41UP2t5DgvUD9Bcxgm8Q1Q6L1VC',
+            'x-requested-by': 'TNI1625!AEbDTSnL3RR08cdKrUorfAQsRL5+XoWfhR6/ekV8Hlij8HSbDp1UT+QhfPFgP6zLHo0M/QT5gV9CicYi5d/hFyw9eKxW2JAe5RIZRiiF8N+bNGUcGozcjtzofK5kqZd/W7Kqv9RVdBxxiV4Zny6FMc76+1ElSEiTFqI2WVMSPN60',
             'Origin': 'https://www.tripadvisor.com',
             'Connection': 'keep-alive',
+            'Cookie': 'datadome=3enDyV1cDxb~plA3Q8~TG7afkqkgm1XTmhdbhryjUjhje8txhHM0NmHmdwTd1Wlw5~q8m39xKGToibakec~Gqzr~iBER-j4KsAOXoaV1gzDu~edIBdu5b_Ccq3uBlay9; TADCID=X6iABE6ve5CCA95KABQCXdElnkGETRW-Svh01l3nWnSL8UJvJUzKQyZuLXFSNCcMp6Rymxtwyuh3702sYkc3sdjLii2nv1Ahchk; TAUnique=%1%enc%3AVk7jcyNIkdRFYb6CviSlwGuZ0AErVdEPSUBjoXrUqdvmhWnEwXwJZw%3D%3D; VRMCID=%1%V1*id.13092*llp.%2FHotels-a_cja%5C.12844798-a_cjp%5C.7753339-a_cjs%5C.242792d5562e69a6794f9439f0bd6813-m13092*e.1679168759988; _abck=A1877DE041951CD11DABDB7F0F277397~-1~YAAQb0xhaJ5yTRCHAQAAjtBvOwn3NbeE3VkTO9LOU5rKWzYCyCMS0s7sG/pN2PBV/oZ6FwAX4UK0Bn8a5TSzKcbU95biyVggUzynzJeDSxmicaltP9tKYHj4YXQLxsC6lqOByXrQrUkPgb6MSn7U9erj+5Hz4xk1JjVklVF6k3xXn6UbxXDc6Loqc+lzWwIoORJLzktFsrjveMTZYsHmfXHmdoLvcAInPsctGJFNi2oNFCby7axLjkcnhf5XVTeMIN8KW7fvVNNnN7Bc/QUcjDbXSH+dgaw6YRvEtT/1rtvWJvfJntJdulmbeGAfRkUkqAYFxJD3XaIFXUCUKNZyn+xf+u6jkm0V283Q02h3nt01gGw4EfPxLKeJqWa9xGuzWvjkopxyOt+/WaKnYhkN+w==~-1~-1~-1; TASSK=enc%3AAFgNWB%2B4SknqEn7cpvoxNKX58zI26iigGgqepWhsgwYKywRGNmy589AFy3Z79Df4RRQNQy1nZw7LqG80zkhcOKpOU8eBxpm1axtzDPYEky3AV%2F5mdmcYpJBTJPVjk8Mc7w%3D%3D; PAC=AOmtDzoMKT4V4_UP2UK5rY5_EZ2hutYx7g8AsZnlquf9ZhTZUVxOdbfnpgM2fy56gJ1MYFlJ4kDgDbkjL7zSuQDwt7v69KELnFaRXMpk-8Rpn0yUOgbuefvIcHQOx35O_g%3D%3D; PMC=V2*MS.57*MD.20230311*LD.20230401; OptanonConsent=isGpcEnabled=0&datestamp=Sat+Apr+01+2023+11%3A40%3A09+GMT%2B0530+(India+Standard+Time)&version=202209.1.0&isIABGlobal=false&hosts=&consentId=fa3b1eed-483c-47ac-be94-9c14998bfc68&interactionCount=1&landingPath=NotLandingPage&groups=C0001%3A1%2CC0002%3A1%2CC0003%3A1%2CC0004%3A1&AwaitingReconsent=false; TATrkConsent=eyJvdXQiOiIiLCJpbiI6IkFMTCJ9; _pbjs_userid_consent_data=3524755945110770; _lc2_fpi=b140173de591--01gv93ax6nt17f2mhey1brb2k7; __gads=ID=87a7da0145152133:T=1678563965:S=ALNI_Ma1UUeaaqdanNj9-CYgHQsarxdlZw; __gpi=UID=00000bd792e35e7f:T=1678563965:RT=1680329402:S=ALNI_Mavnq7UROZq9kURCwnJynALXjUXtg; _lr_env_src_ats=false; TART=%1%enc%3ARWG%2Bgr4kpcDSDrdosbRI1zqhEaDsXjpnlHx5ItFwLlzFyXAKIqDkZUdvLNWJnAoHCVjgqw2ReXY%3D; TATravelInfo=V2*AY.2023*AM.4*AD.9*DY.2023*DM.4*DD.10*A.2*MG.-1*HP.2*FL.3*DSM.1680294043205*RS.1; TAUD=LA-1680294031395-1*RDD-1-2023_03_31*HDD-11696-2023_04_09.2023_04_10.1*LD-35377245-2023.4.9.2023.4.10*LG-35377247-2.1.F.; _lr_sampling_rate=100; pbjs_li_nonid=%7B%7D; ServerPool=C; _li_dcdm_c=.tripadvisor.com; BEPIN=%1%186d2359bdf%3Bweb303a.a.tripadvisor.com%3A30023%3B; TAReturnTo=%1%%2FHotel_Review-g150812-d754465-Reviews-Rosewood_Mayakoba-Playa_del_Carmen_Yucatan_Peninsula.html; TASession=V2ID.5BE34B5F0E8645B29C5175E41A35B1C5*SQ.93*LS.DemandLoadAjax*HS.recommended*ES.popularity*DS.5*SAS.popularity*FPS.oldFirst*LF.en*FA.1*DF.0*TRA.false*LD.754465*EAU._; __vt=tULUFSOZTLzx_-cRABQCwDrKuA05TCmUEEd0_4-PPCRr3nlBwRNXWKdVEKim26qF51_wSzXQz9X2S8_uSOx5y-Di4t7rVUVpdeQIG3_5gfd8pFrGXzinRmfqOohJcn1cNlLxqIj6AVGXh_KNydqzjaBzuOY; SRT=TART_SYNC; TASID=5BE34B5F0E8645B29C5175E41A35B1C5; ak_bmsc=841A5DD11A7C9FA16BE29E5F35BB10BB~000000000000000000000000000000~YAAQb0xhaJ9yTRCHAQAAjtBvOxPzc/9KMFt8Ud+jX4UupYYJ74GpFGnpPIkt9Nxoxzo9mVUpW/zfaj94ftCyOieRUOv+5EgXLjQT405m4W6i+kd+V5oS+xfJ/0McmthS9gbwl6+ajKXFlb/Qqv7HMGcyCkmjn1bs3LqMDOBKBXB0UsFgrWJP+IH5JJSYqFdF03JDakEyJtoBzAHU06WUUpKENVvJHww1EOMwUp4ZSBRex9LQUsL0gNDBIzJOE1FfwqU+tyioHssp7YWWYSLuk6AXdksU6/lKLNvRFOBdKZcnU3fCT3qUvPtJFVZU4JwcibAOTl7uw/nSiVsgnzAsu3L2b/N2z5CsApPYbn78OBVGeqGrzxoYECrVstul5AV9VF4H2nY+4j+KJseKemXyj8o=; bm_sz=50E74BABD3C26C2B21D17229CE1EA657~YAAQb0xhaKByTRCHAQAAjtBvOxOpXJC3qhjqpoJJIKiKaDMNbWZFGIyxwYRH7vAaoVyOuu2RT/LK5U5tRhL16xPP/0G6NLuAKGS599woIBC36W41ojXtjQRSDsr2btQxDlrtNzeQYpGOw8RctFudlM+nmA+GkMOd9qRirb0SI3zOjds++fRVsf4WZ5zZokR4cOtAzuqH898e5LpangFQuOp184nfIB4THBpi7OkGOi58ir3bRjFjQRf78TCu8wLL3y5UqiNk7RaTH7yrZNuByGX+z987+TX74hq7quJRHpMmFh16yjzSDA==~3224882~4407865; bm_sv=53458D9CFF2759193EF5568441149A96~YAAQb0xhaD52TRCHAQAAf1twOxPvmFS51aoPj2iuzhDsk85ijdKvZ10CNKyOx9thVkUIA2uT1P4oXgSA0A6dQjcTqEqew97ihVZW8pYmxDoLy/b/xtTbawax6l9unKL4AUVn7fUiq5H5EOXCu3ChnnRb03DqEkPrxPRNZl5hwerai+WKljbwdZlgxUqdt8Vdu7dzais+e6AXgc9Co+FTV7Fq/xAD6VM56GyiCxYCgTRtTgWzD7eomhR9pdMYUES+W2Nb9WFU~1; roybatty=TNI1625!ALu5b1Il4FpcQUO%2FWrP3x5JM0EFWqRUixAcfA9vfeV5M6NXxuCAHKDB7UT3OLJy61oUc3NurzWeU5e8%2FMJ0PzOAuFwo5eFeUUNaPmxww2zJCaqkspDBH8W%2BHZCLhNNPdIdvryLoggGb85oqVe6lUjdxbpPvXfLgYsO3Y9vJjCdE4%2C1; _lr_retry_request=true; TAUnique=%1%enc%3ARqJZljp%2F4CaHgzp8r%2BF783ih73RSUwb7ik7STkfu%2FB%2Fa%2B4A1Tt%2BEVA%3D%3D; _abck=800625D2858817C8177B3264DCD4B5E8~-1~YAAQjUxhaEBirgyHAQAA7qNvOwls2BuSVND3tF2oVJlmcVYw71pyikaf3JO+mbmSIcbjXAD3HMUoTM2XoseFq/jHdxfOJeJor/NdHVHRiy5Lpo0pTErC0CPoFvfeSWkQv2A2EPofdLhm9O+CrDlN3eu5yJMIwSB7AT9zzRwKEJaTomgHkjZLFuLpuE6Wn71VBMsUorGRfK8tNN1H3KQc/3OWaXMDrXISpW2hVqIkHVExlld60mnt9nb8/1K89PY6nnRciIXkc8U6mfUD8pn72aG29tbpcR6B9vAbGh9AjI8EbaDYShiVXeCxhkb7laEraP1iv/SdpYaffrDUuv5dA0g+Vc9G4WEsEnuFxkYJoRHdemLEOliVSl5WGkRBKg==~-1~-1~-1; bm_sz=5C3364BE1DA7721C578FD23D7892B48E~YAAQjUxhaEFirgyHAQAA7qNvOxNcjgWDqqiHOBCvBz0oZq/VWYDLHTI3UG2mhMB0a6oadLxLq2/Fu84y5ExnoAWYX2aqeQe16JyH9GbPtoTJTSyRjLe/nzpS8vho905Mf92gTXMLio+WTNYaWznZQ7cRQI/DFp1ziN7dPUJQOsa+usOxvVI1zSteipkVSKZmUTmCPkEKuKjM9uAqK8VQbQDfJeEZFMADhm2rhL+Qzo7EhFSGLeZlRmJIANbKrafriT8rxMzrxkeS1mb/iWwJjwSACg8SnDzNNShNdWU+KMJ4wp43kY8HZg==~4534597~4272441; TART=%1%enc%3Ah4M6fK%2Fhe%2FO%2FYYReZwAmtpW63wvC3VZceCWUaNfOe7lVowm89ljC3anYqkPP0qCgwgX04QEiDYc%3D; TASID=5BE34B5F0E8645B29C5175E41A35B1C5',
             'Sec-Fetch-Dest': 'empty',
             'Sec-Fetch-Mode': 'cors',
             'Sec-Fetch-Site': 'same-origin',
@@ -111,17 +112,40 @@ class TripAdvisor(AbstractScraper):
             dict: payload in dictionary format
         """
 
-        return [
-            {
-                "query": "e00c08246203980a6e31164c91047444",
-                "variables": {
-                    "locationId": self.location_id,
-                    "limit": limit,
-                    "offset": review_offset,
-                    "routesRequest": []
-                }
+        # return [
+        #     {
+        #         "query": "e00c08246203980a6e31164c91047444",
+        #         "variables": {
+        #             "locationId": self.location_id,
+        #             "limit": limit,
+        #             "offset": review_offset,
+        #             "routesRequest": []
+        #         }
+        #     }
+        # ]
+
+        return [{
+            "query": "ea9aad8c98a6b21ee6d510fb765a6522",
+            "variables": {
+                "locationId": self.location_id,
+                "offset": review_offset,
+                "filters": [
+                    {
+                        "axis": "LANGUAGE",
+                        "selections": [
+                            "en"
+                        ]
+                    }
+                ],
+                "prefs": None,
+                "initialPrefs": {},
+                "limit": limit,
+                "filterCacheKey": f"locationReviewFilters_{self.location_id}",
+                "prefsCacheKey": f"locationReviewPrefs_{self.location_id}",
+                "needKeywords": False,
+                "keywordVariant": "location_keywords_v2_llr_order_30_en"
             }
-        ]
+        }]
 
 
     # << function tp make API call and scrape reviews
@@ -153,7 +177,10 @@ class TripAdvisor(AbstractScraper):
                     #     json.dump(response.json(), w, indent=4)
 
                     try:
-                        reviews = response.json()[0]["data"]["locationReviews"][0]
+                        resp_dict = response.json()[0]["data"]
+                        locations = resp_dict and ("locations" in resp_dict and resp_dict["locations"] and resp_dict["locations"][0]) or ("locationReviews" in resp_dict and resp_dict["locationReviews"] and resp_dict["locationReviews"][0]) or {}
+                        reviews = locations and "reviewListPage" in locations and locations["reviewListPage"] and "reviews" in locations["reviewListPage"] and locations["reviewListPage"]["reviews"] or []
+                        # reviews = response.json()[0]["data"]["locationReviews"][0]
                     except Exception as e:
                         self.review_limit_per_request = int(self.review_limit_per_request/2)
                         if self.review_limit_per_request < 20:
@@ -212,9 +239,11 @@ class TripAdvisor(AbstractScraper):
                     review_data["title"] = ("title" in review and review['title']) or ""
                     review_data['username'] =  ("username" in review and review["username"]) or ""
                     review_data['user_info'] =  ("userProfile" in review and review["userProfile"] is not None and "displayName" in review["userProfile"] and review["userProfile"]["displayName"]) or ""
+                    review_data['user_avatar'] =  json.dumps(("userProfile" in review and review["userProfile"] is not None and "avatar" in review["userProfile"] and review["userProfile"]["avatar"]) or {})
                     review_data["publish_platform"] = ("publishPlatform" in review and review['publishPlatform']) or ""
                     review_data["provider_name"] = ("providerName" in review and review['providerName']) or ""
                     review_data["trip_info"] = json.dumps(("tripInfo" in review and review['tripInfo']) or {})
+                    review_data["social_statistics"] = json.dumps(("socialStatistics" in review and review['socialStatistics']) or {})
                     review_data["social_statistics"] = json.dumps(("socialStatistics" in review and review['socialStatistics']) or {})
                     review_data['owner_response'] =  json.dumps(("ownerResponse" in review and review["ownerResponse"] is not None and {
                         "title": ("title" in review["ownerResponse"] and review["ownerResponse"]['title']) or "",
@@ -246,8 +275,8 @@ class TripAdvisor(AbstractScraper):
 
         bulk_insert_query = """
             INSERT IGNORE INTO m2websolution_db.tb_tripadvisor_reviews
-            (job_id, tripadvisor_id, published_date, rating, `text`, title, username, user_info, publish_platform, provider_name, trip_info, social_statistics, owner_response, hash, scraped_date)
-            VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP);
+            (job_id, tripadvisor_id, published_date, rating, `text`, title, username, user_info, user_avatar, publish_platform, provider_name, trip_info, social_statistics, owner_response, hash, scraped_date)
+            VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP);
         """
         params = [ tuple(review.values()) for review in reviews ]
 
@@ -259,7 +288,7 @@ class TripAdvisor(AbstractScraper):
         self.location_id = self.extract_location_id()       # get location id from url
         if self.location_id:
             review_offset = 0
-            self.review_limit_per_request = 750
+            self.review_limit_per_request = 200
             while True:
                 try:
                     reviews = self.scrape_reviews(review_offset)
