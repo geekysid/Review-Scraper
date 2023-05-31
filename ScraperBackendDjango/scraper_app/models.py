@@ -1,5 +1,5 @@
 from django.db import models
-
+# manage.py inspectdb > modelsX2.py
 # Create your models here.
 
 class TbSource(models.Model):
@@ -24,6 +24,7 @@ class TbJobs(models.Model):
     date_added = models.DateTimeField(blank=True, null=True)
     last_updated = models.DateTimeField(blank=True, null=True)
     remarks = models.TextField(blank=True, null=True)
+    webhook_url = models.CharField(max_length=500, blank=True, null=True)
 
     class Meta:
         managed = False
@@ -77,7 +78,8 @@ class TbTripadvisorReviews(models.Model):
     class Meta:
         managed = False
         db_table = 'tb_tripadvisor_reviews'
-
+    def __str__(self) -> str:
+        return f"{self.pk} {self.job}"
 
 class TbTrustpilotReviews(models.Model):
     job = models.ForeignKey(TbJobs, models.DO_NOTHING,related_name='trustpilot_reviewtb')
@@ -96,3 +98,28 @@ class TbTrustpilotReviews(models.Model):
     class Meta:
         managed = False
         db_table = 'tb_trustpilot_reviews'
+    def __str__(self) -> str:
+        return f"{self.pk} {self.job}"
+class TbBookingReviews(models.Model):
+    job = models.ForeignKey(TbJobs, models.DO_NOTHING , related_name='booking_reviewtb')
+    published_date = models.CharField(max_length=50, blank=True, null=True)
+    reviewer_name = models.CharField(max_length=50, blank=True, null=True)
+    reviewer_country = models.CharField(max_length=50, blank=True, null=True)
+    room_type = models.CharField(max_length=50, blank=True, null=True)
+    stay_duration = models.CharField(max_length=50, blank=True, null=True)
+    stay_date = models.CharField(max_length=50, blank=True, null=True)
+    title = models.TextField(blank=True, null=True)
+    like_comment = models.TextField(blank=True, null=True)
+    dislike_comment = models.TextField(blank=True, null=True)
+    hotel_response = models.TextField(blank=True, null=True)
+    rating = models.FloatField(blank=True, null=True)
+    likes = models.CharField(max_length=100, blank=True, null=True)
+    user_info = models.JSONField(blank=True, null=True)
+    hash = models.CharField(unique=True, max_length=500)
+    scraped_date = models.DateTimeField()
+
+    class Meta:
+        managed = False
+        db_table = 'tb_booking_reviews'
+    def __str__(self) -> str:
+        return f"{self.pk} {self.job}"
