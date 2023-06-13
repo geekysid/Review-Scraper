@@ -110,9 +110,9 @@ def main(job_id, logger=None):
         logger = set_logger(job_id=job_id)
 
     try:
-        job_details = get_job_details(job_id)
-        if job_details:
-            url, from_date, to_date, webhook_url = job_details
+        url, from_date, to_date, webhook_url = get_job_details(job_id)
+        if url and from_date and to_date and webhook_url:
+            # url, from_date, to_date, webhook_url = job_details
             if utils.update_job_status(job_id, new_status='RUNNING', execution_start_date=datetime.datetime.now(), logger=logger):
                 if 'tripadvisor.com' in url:
                     tripadvisor.TripAdvisor(job_id=job_id, url=url, from_date=from_date, to_date=to_date, logger=logger)
@@ -120,9 +120,9 @@ def main(job_id, logger=None):
                     trustpilot.TrustPilot(job_id=job_id, url=url, from_date=from_date, to_date=to_date, logger=logger)
                 elif 'booking.com' in url:
                     booking.Booking(job_id=job_id, url=url, from_date=from_date, to_date=to_date, logger=logger)
-                
-                if webhook_url:
-                    utils.push_to_webhook(job_id, webhook_url)
+        
+            if webhook_url:
+                utils.push_to_webhook(job_id, webhook_url)
 
     except Exception as e:
         utils.debug(message=f"Exception while running scrapers. \n{e}", type="exception", logger=logger)
@@ -229,7 +229,7 @@ if __name__ == '__main__':
         logger, log_file = set_logger()
         args = args_parser()
         job_id = create_job(url=args.url, from_date=utils.date_to_str(args.start_date), to_date=utils.date_to_str(args.end_date), webhook_url=args.webhook_url)
-        # job_id = 72
+        # job_id = "165"
         if job_id:
             add_log_file_to_table(log_file, job_id, logger)
             main(job_id, logger=logger)

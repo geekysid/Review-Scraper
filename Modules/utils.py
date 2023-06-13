@@ -331,7 +331,7 @@ def clean_text(text: str) -> str:
 
 
 # << function to send data to a given webhook url
-def push_to_webhook(job_id, webhook_url: str) -> bool:
+def push_to_webhook(job_id: int, webhook_url: str) -> bool:
     """function to send data to a given webhook url
 
     Args:
@@ -346,13 +346,16 @@ def push_to_webhook(job_id, webhook_url: str) -> bool:
         if not webhook_url:
             debug(f"No Webhook found.", "error")
             return False
-
+        
+        debug(f"Pushing data to Webhook: {webhook_url}", "info")
         response = requests.get(f"http://64.227.157.110/api2/reviews/{job_id}")
-        # response = requests.get(f"http://127.0.0.1:8000/api2/reviews/{job_id}")
         if response.status_code == 200:
-            webhook_resp = requests.post(webhook_url, headers={}, data=response.text)
+            payload = response.json()
+            # payload = response.text
+            headers = { "Content-Type": "application/json" }
+            webhook_resp = requests.request("POST", webhook_url, headers=headers, data=json.dumps(payload))
             if webhook_resp.status_code in (200, 201, 202):
-                debug(f"Reviews pushed to webhook: {webhook_url}.", "info")
+                debug(f"Reviews successfully sent to Webhook || Status Code {webhook_resp.status_code}", "info")
                 return True
             else:
                 raise Exception(f"Got {webhook_resp.status_code} status code while pushing data to webhook")
@@ -361,4 +364,3 @@ def push_to_webhook(job_id, webhook_url: str) -> bool:
     except Exception as e:
         debug(f"Exception while passing data to webhooks || {e}", "exceptions")
     return False
-        
