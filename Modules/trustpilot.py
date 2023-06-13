@@ -289,11 +289,11 @@ class TrustPilot(AbstractScraper):
                         utils.random_sleep()
                         if published_date_below_range:
                             utils.debug(message=f"All reviews({total_reviews_scraped}) scraped from {total_pages} pages, for a given time frame ({self.from_date } to {self.to_date }) and {total_reviews_added_to_db} reviews added to DB", type="info", logger=self.logger)    
-                            utils.terminate_script(job_id=self.job_id, status="COMPLETED", remarks="Scraped all required Reviews", logger=self.logger)
-                            break
+                            utils.terminate_script(job_id=self.job_id, status="COMPLETED", remarks=f"All reviews({total_reviews_scraped}) scraped from {total_pages} pages, for a given time frame ({self.from_date }", logger=self.logger)
+                            return
 
                 utils.debug(message=f"All reviews({total_reviews_scraped}) scraped from {total_pages} pages and {total_reviews_added_to_db} reviews added to DB", type="info", logger=self.logger)    
-                utils.terminate_script(job_id=self.job_id, status="COMPLETED", remarks="Scraped all required Reviews", logger=self.logger)
+                utils.terminate_script(job_id=self.job_id, status="COMPLETED", remarks=f"All reviews({total_reviews_scraped}) scraped from {total_pages} pages and {total_reviews_added_to_db} reviews added to DB", logger=self.logger)
         except Exception as e:
             utils.debug(message=f"Got exception in main function.\n{e}", type="exception", logger=self.logger)
             utils.terminate_script(job_id=self.job_id, status="EXCEPTION", remarks=f"Got exception in main function.\n{e}", logger=self.logger)

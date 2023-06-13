@@ -239,9 +239,11 @@ class TripAdvisor(AbstractScraper):
                     review_data["title"] = ("title" in review and review['title']) or ""
                     review_data['username'] =  ("username" in review and review["username"]) or ""
                     review_data['user_info'] =  ("userProfile" in review and review["userProfile"] is not None and "displayName" in review["userProfile"] and review["userProfile"]["displayName"]) or ""
+                    review_data['user_avatar'] =  json.dumps(("userProfile" in review and review["userProfile"] is not None and "avatar" in review["userProfile"] and review["userProfile"]["avatar"]) or {})
                     review_data["publish_platform"] = ("publishPlatform" in review and review['publishPlatform']) or ""
                     review_data["provider_name"] = ("providerName" in review and review['providerName']) or ""
                     review_data["trip_info"] = json.dumps(("tripInfo" in review and review['tripInfo']) or {})
+                    review_data["social_statistics"] = json.dumps(("socialStatistics" in review and review['socialStatistics']) or {})
                     review_data["social_statistics"] = json.dumps(("socialStatistics" in review and review['socialStatistics']) or {})
                     review_data['owner_response'] =  json.dumps(("ownerResponse" in review and review["ownerResponse"] is not None and {
                         "title": ("title" in review["ownerResponse"] and review["ownerResponse"]['title']) or "",
@@ -273,8 +275,8 @@ class TripAdvisor(AbstractScraper):
 
         bulk_insert_query = """
             INSERT IGNORE INTO m2websolution_db.tb_tripadvisor_reviews
-            (job_id, tripadvisor_id, published_date, rating, `text`, title, username, user_info, publish_platform, provider_name, trip_info, social_statistics, owner_response, hash, scraped_date)
-            VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP);
+            (job_id, tripadvisor_id, published_date, rating, `text`, title, username, user_info, user_avatar, publish_platform, provider_name, trip_info, social_statistics, owner_response, hash, scraped_date)
+            VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP);
         """
         params = [ tuple(review.values()) for review in reviews ]
 

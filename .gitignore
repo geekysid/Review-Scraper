@@ -143,3 +143,6 @@ Logs
 assets
 static
 HTMLs
+ScraperBackendDjango/modelsX64.py
+ScraperBackendDjango/modelsX2.py
+ScraperBackendDjango/scraper_app/tests_Jobs.py
