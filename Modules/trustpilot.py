@@ -81,11 +81,11 @@ class TrustPilot(AbstractScraper):
         reviews_added, published_date_below_range = None, True
         if reviews:
             processed_reviews, published_date_below_range = self.process_reviews(reviews)     # process Reviews
-    
+
             # if processed reviews is not empty list
             if processed_reviews:
                 reviews_added = self.add_reviews_to_db(processed_reviews) # Save reviews to DB
-            
+
         return reviews_added, published_date_below_range
 
 
@@ -93,7 +93,7 @@ class TrustPilot(AbstractScraper):
     # >> function to built endpoint to scrape reviews for pages > 1
     @staticmethod
     def parsed_input_link_to_json_endpoint(buildId, target_site, page):
-        return f"https://www.trustpilot.com/_next/data/{buildId}/review/{target_site}.json?page={page}&sort=recency&businessUnit={target_site}"
+        return f"https://www.trustpilot.com/_next/data/{buildId}/review/{target_site}.json?languages=all&page={page}&sort=recency&businessUnit={target_site}"
 
 
     # >> function tp make API call and scrape reviews
@@ -120,6 +120,7 @@ class TrustPilot(AbstractScraper):
 
             try_count = 1
             while True:
+                # utils.debug(message=f"Endpoint: {json_endpoint}", type="debug", logger=self.logger)
                 response = requests.request("GET", url=json_endpoint, proxies=proxy, headers=self.get_headers(), data=self.generate_payload())
                 if response.status_code == 200:
                     response_json = response.json()
@@ -235,7 +236,7 @@ class TrustPilot(AbstractScraper):
 
     # >> function to get response from the 1st page and returns soup
     def process_1st_page(self):
-        url = self.url
+        url = self.url+"?languages=all&sort=recency"
         utils.debug(message=f"Scraping reviews from Page # 1  ||  {url}", type="info", logger=self.logger)
         for _ in range(5):
             try:

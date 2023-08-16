@@ -8,11 +8,18 @@ from .models import TbJobs , TbLogs,TbSource
 class AddJobView(APIView):
     serializer_class = AddJobTbSerializer
     def post(self, request, format=None):
+        print(request.data)
         serializer = AddJobTbSerializer(data = request.data )
-        serializer.is_valid(raise_exception=True)
+        print("1")
+        serializer.is_valid()
+        print("2")
+        print(serializer.data)
         item = serializer.save()
+        print("3")
         data = serializer.data
+        print("4")
         serializered = AddJobTbSerializer(item )
+        print("5")
         return Response({'status' : True ,'message' : f'Job Created Successfully ' , 'data' : serializered.data},status=status.HTTP_201_CREATED)
 
 class ShowJobStatusView(APIView):

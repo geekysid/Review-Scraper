@@ -1,5 +1,3 @@
-#!/usr/local/bin/python3
-
 # ## utilities functions to avoid code duplication
 
 # ****** # # # # # # # # # # # # # # # # # # # # # # # ****** #
@@ -16,6 +14,7 @@ import os, pandas, pyfiglet, time, random, hashlib, requests, json
 from datetime import datetime
 from Modules.db_connector import DBConnector
 from urllib.parse import urlparse
+import ast
 
 
 DEBUG = True
@@ -331,7 +330,7 @@ def clean_text(text: str) -> str:
 
 
 # << function to send data to a given webhook url
-def push_to_webhook(job_id: int, webhook_url: str) -> bool:
+def push_to_webhook_old(job_id: int, webhook_url: str) -> bool:
     """function to send data to a given webhook url
 
     Args:
@@ -364,3 +363,85 @@ def push_to_webhook(job_id: int, webhook_url: str) -> bool:
     except Exception as e:
         debug(f"Exception while passing data to webhooks || {e}", "exceptions")
     return False
+
+
+# << function to get source from DB from source id in DB
+def get_source_from_id(id: int) -> str:
+    """function that fetches matching source from DB depending the source id
+
+    Args:
+        id (int): if of the source in DB
+
+    Returns:
+        str: source NAME
+    """
+
+    source_query = "SELECT source_name FROM  tb_source WHERE source_id='{}'".format(id)
+    source = DBConnector().execute_fetch(source_query, fetch_all=False)
+    return source[0]
+
+
+
+# << function to send data to a given webhook url
+def push_to_webhook(job_id: int, webhook_url: str) -> bool:
+    """function to send data to a given webhook url
+
+    Args:
+        job_id (int): Id of the job
+        webhook_url (str): url of the webhook
+
+    Returns:
+        bool: True if data was sent successfully, False otherwise
+    """
+
+    try:
+        if not webhook_url:
+            debug(f"No Webhook found.", "error")
+            return False
+
+        debug(f"Pushing data to Webhook: {webhook_url}", "info")
+        debug(f"Getting all reviews for job_id: {job_id}", "info")
+        headers = { "Content-Type": "application/json" }
+
+        response = requests.get(f"http://64.227.157.110/api2/reviews/{job_id}")
+        if response.status_code == 200:
+            payload = response.json()
+            payload['data']['source'] = get_source_from_id(payload['data']['source'])
+            reviews = payload["data"]["reviews"]
+            for review in reviews:
+                review['user_info'] = ast.literal_eval(review['user_info']) if review['user_info'] else review['user_info']
+            payload["data"]["TotalReviews"] = len(reviews)
+            payload["data"]["ReviewPageNumber"] = 0
+            steps = 100
+            i = 0
+
+            while True:
+                page_number = (i//steps) + 1
+                payload["data"]["ReviewPageNumber"] = page_number
+                chunk_payload = payload["data"]
+                chunk_payload["reviews"] = reviews[i:i+steps]
+
+                # Sending to webhook
+                debug(f"Page # {page_number}", "info")
+                print(json.dumps(chunk_payload))
+                webhook_resp = requests.request("POST", webhook_url, headers=headers, data=json.dumps(chunk_payload))
+                if webhook_resp.status_code in (200, 201, 202):
+                    debug(f"   Reviews successfully sent to Webhook || Status Code {webhook_resp.status_code}", "info")
+                    # return True
+                else:
+                    raise Exception(f"Got {webhook_resp.status_code} status code while pushing data to webhook")
+                i += steps
+                try:
+                    reviews[i]
+                    if i > len(reviews):
+                        break
+                except:
+                    break
+            return True
+
+        else:
+            raise Exception(f"Got {response.status_code} status code while fetching reviews from DB")
+    except Exception as e:
+        debug(f"Exception while passing data to webhooks || {e}", "exceptions")
+    return False
+

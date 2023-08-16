@@ -39,7 +39,7 @@ class AddJobTbSerializer(serializers.ModelSerializer):
 
     reviews_from_date = serializers.DateTimeField(required=False, default=old_date_time)
     reviews_to_date   = serializers.DateTimeField(required=False, default=current_date_time)
-
+    
     class Meta:
         model = TbJobs
         fields = ['job_id', 'url','webhook_url','status', 'reviews_from_date', 'reviews_to_date', 'remarks']
@@ -52,13 +52,18 @@ class AddJobTbSerializer(serializers.ModelSerializer):
         # ]
 
     def validate(self, attrs):
+        print("==================")
         reviews_from_date = attrs.get('reviews_from_date')
         reviews_to_date   = attrs.get('reviews_to_date')
         url               = attrs.get('url')
+        
+        # print("reviews_from_date: ", reviews_from_date)
+        # print("reviews_to_date: ", reviews_to_date)
+
         domain            = urlparse(url).netloc.replace("www.",'')
-        print(reviews_to_date,reviews_from_date)
+        # print(reviews_to_date,reviews_from_date)
         jobs_found = TbJobs.objects.filter(url= url ,reviews_from_date= reviews_from_date ,reviews_to_date = reviews_to_date  )
-        print(f"{jobs_found=}")
+        # print(f"{jobs_found=}")
 
         if jobs_found.exists():
             raise serializers.ValidationError({"Url": f"Already Exist"})
