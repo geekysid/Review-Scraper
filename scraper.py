@@ -120,8 +120,9 @@ def main(job_id, logger=None):
                     trustpilot.TrustPilot(job_id=job_id, url=url, from_date=from_date, to_date=to_date, logger=logger)
                 elif 'booking.com' in url:
                     booking.Booking(job_id=job_id, url=url, from_date=from_date, to_date=to_date, logger=logger)
-        
+
             if webhook_url:
+                print(f"==== Webhook URL: {webhook_url}")
                 utils.push_to_webhook(job_id, webhook_url)
 
     except Exception as e:
