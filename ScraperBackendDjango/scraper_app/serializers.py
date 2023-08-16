@@ -3,7 +3,7 @@ from datetime import datetime
 from urllib.parse import urlparse
 from rest_framework import serializers
 
-from .models import TbJobs, TbStatus, TbLogs, TbTripadvisorReviews, TbSource
+from .models import TbJobs, TbStatus, TbLogs, TbTripadvisorReviews, TbSource,TbTrustpilotReviews,TbBookingReviews
 
 
 class ViewStatusTbSerializer(serializers.ModelSerializer):
@@ -15,6 +15,23 @@ class ViewReviewTbSerializer(serializers.ModelSerializer):
     class Meta:
         model = TbTripadvisorReviews
         exclude = ['job']
+
+class ViewTbBookingReviewsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TbBookingReviews
+        exclude = ['job']
+
+class ViewRTbTrustpilotReviewsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TbTrustpilotReviews
+        exclude = ['job']
+
+class ViewTbTripadvisorReviewsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TbTripadvisorReviews
+        exclude = ['job']
+
+
 
 from django.utils import timezone
 
@@ -102,6 +119,13 @@ class ViewJobReviewTbSerializer(serializers.ModelSerializer):
         source_x = view_serializer_dict[source_x]
         self.fields['reviews'] = ViewReviewTbSerializer(many=True, source=source_x)
 
+
+class ViewJobSerializer(serializers.ModelSerializer):
+    job_id = serializers.IntegerField(required=False, read_only=True)
+
+    class Meta:
+        model = TbJobs
+        fields = ['job_id','url','reviews_from_date','reviews_to_date','source','status','execution_start_date','execution_end_date','date_added','remarks']
 
 class ViewLogTbSerializer(serializers.ModelSerializer):
     class Meta:

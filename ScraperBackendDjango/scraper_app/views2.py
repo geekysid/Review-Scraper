@@ -2,7 +2,8 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from .serializers import AddJobTbSerializer, ViewJobReviewTbSerializer, ViewLogTbSerializer
+from .serializers import AddJobTbSerializer, ViewLogTbSerializer,ViewJobSerializer
+from .serializers import (ViewTbTripadvisorReviewsSerializer,ViewRTbTrustpilotReviewsSerializer,ViewTbBookingReviewsSerializer)
 from .models import TbJobs , TbLogs,TbSource
 
 class AddJobView(APIView):
@@ -36,24 +37,34 @@ class ShowJobStatusView(APIView):
 
 
 class ShowJobReviewsView(APIView):
-    def get(self, request,job_id=None ,format=None):
-        job_obj = TbJobs.objects.filter(pk = job_id)
-        if not job_obj.exists():
-            return Response({'status' : True ,'message' : f"Job Not Found With id '{job_id}' ", 'data' : None},status=status.HTTP_404_NOT_FOUND)
+    def get(self, request, job_id=None, format=None):
+            from scraper_app.models import TbBookingReviews, TbTripadvisorReviews, TbTrustpilotReviews
+            try:
+                job_obj = TbJobs.objects.get(pk=job_id)
+                serializer_job = ViewJobSerializer(job_obj).data
+            except TbJobs.DoesNotExist:
+                return Response(
+                    {
+                        'status': False,
+                        'message': f"Job Not Found With ID '{job_id}'",
+                        'data': None
+                    },
+                    status=status.HTTP_404_NOT_FOUND
+                )
 
-        job_obj = job_obj.first()
-        try:
-            serializer = ViewJobReviewTbSerializer(job_obj, context={'source_x': job_obj.source_id})
-        except KeyError :
-            serializer = ViewJobReviewTbSerializer(job_obj, context={'source_x': job_obj.source.source_name})
-        except Exception as e :
-            import traceback
-            e = traceback.format_exc()
-            return Response({'status' : False ,'message' : f'Error {e}' , 'data' : None},status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            trip_reviews       = TbTripadvisorReviews.objects.filter(job=job_obj)
+            trustpilot_reviews = TbTrustpilotReviews.objects.filter(job=job_obj)
+            booking_reviews    = TbBookingReviews.objects.filter(job=job_obj)
 
+            trip_serializer       = ViewTbTripadvisorReviewsSerializer(trip_reviews, many=True).data
+            trustpilot_serializer = ViewRTbTrustpilotReviewsSerializer(trustpilot_reviews, many=True).data
+            booking_serializer    = ViewTbBookingReviewsSerializer(booking_reviews, many=True).data
 
-        return Response({'status' : True ,'message' : f'Job Reviews Found Successfully ' , 'data' : serializer.data},status=status.HTTP_200_OK)
+            all_reviews = trip_serializer + trustpilot_serializer + booking_serializer
+            serializer_job['reviews'] = all_reviews
 
+            response_data = {'status' : True ,'message' : f'Job Reviews Found Successfully ' , 'data' : serializer_job}
+            return Response(response_data, status=status.HTTP_200_OK)
 
 
 class ShowlogView(APIView):
